@@ -1,0 +1,33 @@
+#!python3
+
+import os
+import time
+from colorama import Fore, Style
+
+
+def build():
+    print(
+        f"🔎 {Style.BRIGHT+Fore.CYAN}(1/3) Verifying packages are installed{Style.RESET_ALL}")
+    os.system('cd ../backend && npm i')
+    print(
+        f"\n🧪 {Style.BRIGHT+Fore.CYAN}(2/3) Compiling typescript{Style.RESET_ALL}")
+    typescriptCompilation = os.system("cd ../backend && npx tsc")
+    if typescriptCompilation > 0:
+        return typescriptCompilation
+    print(f"\n🔨 {Style.BRIGHT+Fore.CYAN}(3/3) Installing node_modules in layer/nodejs folder{Style.RESET_ALL}")
+    packages = os.system(
+        "cd ../backend && mkdir -p layer/nodejs && cp package*.json layer/nodejs && cd layer/nodejs && npm i")
+    if packages > 0:
+        return packages
+
+print()
+start = time.time()
+result = build()
+end = time.time()
+print()
+
+if not result:
+    print(f"{Style.BRIGHT+Fore.LIGHTGREEN_EX}✅ Build complete in {end-start:.2f}s{Style.RESET_ALL}")
+else:
+    print(f"{Style.BRIGHT+Fore.RED}❌ Build failed in {end-start:.2f}s with code {build}{Style.RESET_ALL}")
+print('\n')
