@@ -55,9 +55,9 @@ export type Handler = (event: APIGatewayEvent, context: Context) => Promise<APIG
  * export default lambda(handler)
  * ```
  * @param handler Your lambda handler
- * @returns The same handler wrapped in a try/catch block, returned in an object that should be set as the module's export.
+ * @returns The same handler wrapped in a try/catch block
  */
-export function lambda(handler: Handler): {handler: Handler} {
+export function lambda(handler: Handler): Handler {
   const wrapper = async function(event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> {
     try {
       return await handler(event, context)
@@ -65,7 +65,7 @@ export function lambda(handler: Handler): {handler: Handler} {
       return errorHandling(error)
     }
   }
-  return { handler: wrapper }
+  return wrapper
 }
 
 
@@ -76,7 +76,7 @@ export function lambda(handler: Handler): {handler: Handler} {
  * @param requiredProperties The name of the parameters expected to be in `body`
  * @returns `body`, parsed into an object.
  */
-export function validateRequestBody(body: string | null, requiredProperties: string[]): {[key: string]: any} {
+export function validateRequestBody(body: string | null, requiredProperties: string[]): {[key: string]: unknown} {
   if (!body) throw new HTTPError(400, "Request body is required");
   let parsed;
   try {
