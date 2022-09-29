@@ -4,17 +4,16 @@
  * function used to decorate handlers. All errors thrown manually by Secret Santa
  * *should* be an `HTTPError` or descendant class.
  */
-export class HTTPError {
+export class HTTPError extends Error {
   statusCode: number
-  message: string
 
   /**
    * @param statusCode The HTTP status code, i.e. 404, 500
    * @param message The reason for exception, i.e. "User does not exist."
    */
   constructor(statusCode: number, message: string) {
+    super(message)
     this.statusCode = statusCode
-    this.message = message
   }
 
   /** Formats the response body to be sent back to the client. */
