@@ -13,7 +13,7 @@ export class SecretSantaStack extends cdk.Stack {
     super(scope, id, props);
 
     const tables = createTables(this)
-
+    
     const lambdaRole = createLambdaRole(this, tables)
     const lambdas = createLambdas(this, lambdaRole)
 

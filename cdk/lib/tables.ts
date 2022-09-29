@@ -2,10 +2,10 @@ import { Attribute, AttributeType, Table } from "aws-cdk-lib/aws-dynamodb"
 import { SecretSantaStack } from "./secret-santa-stack"
 
 export type Tables = {
-  Auth: Table,
-  Users: Table,
-  Players: Table,
-  Games: Table
+  auth: Table,
+  users: Table,
+  players: Table,
+  games: Table
 }
 
 type TableReference = keyof Tables
@@ -21,21 +21,21 @@ type TableConfigurationProps = {
 }
 
 const tableConfigProps: { [Property in TableReference]: TableConfigurationProps } = {
-  Games: {
+  games: {
     partitionKey: 'code'
   },
-  Users: {
+  users: {
     partitionKey: 'id',
     globalIndexes: [
       { name: 'by-phone-number', partitionKey: 'phone-number' },
       { name: 'by-email', partitionKey: 'email' }
     ]
   },
-  Players: {
+  players: {
     partitionKey: 'game-code',
     sortKey: 'display-name',
   },
-  Auth: {
+  auth: {
     partitionKey: 'id',
     sortKey: 'otp',
     globalIndexes: [
@@ -57,7 +57,7 @@ class TableSchema {
 
   constructor(name: string, props: TableConfigurationProps) {
     this.name = `secret-santa-${name.toLowerCase()}-table`
-    this.cdkID = `${name}Table`
+    this.cdkID = `${name[0].toUpperCase() + name.slice(1)}Table`
     this.globalIndexes = props.globalIndexes ?? []
     this.partitionKey = props.partitionKey
     this.sortKey = props.sortKey

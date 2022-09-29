@@ -2,7 +2,7 @@ import { Duration } from "aws-cdk-lib"
 import { ManagedPolicy, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam"
 import { Code, Function, Runtime, LayerVersion } from "aws-cdk-lib/aws-lambda"
 import { SecretSantaStack } from "./secret-santa-stack"
-import { Tables } from "./tables"
+import { tableConfigurations, Tables } from "./tables"
 
 /* When defining a lambda, add its name (in kebab case, name should match exactly the
  * filename containing its handler) to the `Lambdas` type below. `configurationProps`
@@ -110,7 +110,7 @@ class LambdaConfiguration {
     this.name = `secret-santa-${props.name}`;
     this.cdkID = tokenizedName.join("") + 'Lambda';
     this.friendlyName = tokenizedName.join(" ");
-    
+
     this.handler = `lambda/${props.name}.default`
     this.apiRoute = props.apiRoute;
     this.memory = props.memory ?? 128;
@@ -123,7 +123,7 @@ class LambdaConfiguration {
  * Creates a map with the same keys as `Lambda`, except that instead of just the function name, the value
  * is the function configuration. 
  */
-function buildConfigurationMap(): {[Property in LambdaReference]: LambdaConfiguration} {
+function buildConfigurationMap(): { [Property in LambdaReference]: LambdaConfiguration } {
   const configurationMap: any = {};
   for (let reference of Object.keys(configurationProps) as LambdaReference[]) {
     configurationMap[reference] = new LambdaConfiguration(configurationProps[reference]);
@@ -138,17 +138,19 @@ export const lambdaConfigurations = buildConfigurationMap();
  * in an object map. Create `lamdaRole` with `createLambdaRole`.
  */
 export function createLambdas(scope: SecretSantaStack, lambdaRole: Role): Lambdas {
-  // TODO: Add table names as environment variables
-  const environmentVariables = {}
+  // These environment variables are available to all lambdas
+  const environmentVariables = getLambdaEnvironmentVariables()
 
-  // must declare object we are building as type `any`, because we can't
-  // define all the properities on the `Lambdas` type all at once
   const lambdas: any = {};
+
+  // A layer is a way of putting all the dependencies in one place instead
+  // of uploading them again for each lambda. 
   const layer = new LayerVersion(scope, "SecretSantaLambdaLayer", {
     code: Code.fromAsset('../backend/layer'),
     description: "Contains node_modules used by Secret Santa lambdas",
     layerVersionName: "SecretSantaNodeModules",
   })
+
   const sharedConfiguration = {
     code: Code.fromAsset('../backend/build'),
     runtime: Runtime.NODEJS_16_X,
@@ -170,7 +172,7 @@ export function createLambdas(scope: SecretSantaStack, lambdaRole: Role): Lambda
     });
   }
   return lambdas;
-} 
+}
 
 /**
  * Creates the role used by all Lambdas. Pass the dynamodb tables so that the Lambdas
@@ -188,4 +190,38 @@ export function createLambdaRole(scope: SecretSantaStack, tables: Tables) {
   }
 
   return role
+}
+
+function getLambdaEnvironmentVariables() {
+  /* 
+   * The information passed to lambdas should be strings that are configured specifically
+   * through CDK, i.e. table names, partition keys, etc. Values that CDK doesn't control
+   * (like table schema outside of the sort and partition keys) should be stored directly
+   * in the `constants` file in backend. 
+   */
+  return {
+    // Auth table
+    AUTH_TABLE_NAME: tableConfigurations.auth.name,
+    AUTH_TABLE_PARTITION_KEY: tableConfigurations.auth.partitionKey,
+    AUTH_TABLE_SORT_KEY: tableConfigurations.auth.sortKey as string,
+    AUTH_TABLE_AUTH_TOKEN_INDEX_NAME: tableConfigurations.auth.globalIndexes[0].name,
+    AUTH_TABLE_AUTH_TOKEN_INDEX_PARTITION_KEY: tableConfigurations.auth.globalIndexes[0].partitionKey,
+
+    // Users table
+    USERS_TABLE_NAME: tableConfigurations.users.name,
+    USERS_TABLE_PARTITION_KEY: tableConfigurations.users.partitionKey,
+    USERS_TABLE_PHONE_NUMBER_INDEX_NAME: tableConfigurations.users.globalIndexes[0].name,
+    USERS_TABLE_PHONE_NUMBER_INDEX_PARTITION_KEY: tableConfigurations.users.globalIndexes[0].partitionKey,
+    USERS_TABLE_EMAIL_INDEX_NAME: tableConfigurations.users.globalIndexes[1].name,
+    USERS_TABLE_EMAIL_INDEX_PARTITION_KEY: tableConfigurations.users.globalIndexes[1].partitionKey,
+
+    // Players table
+    PLAYERS_TABLE_NAME: tableConfigurations.players.name,
+    PLAYERS_TABLE_PARTITION_KEY: tableConfigurations.players.partitionKey,
+    PLAYERS_TABLE_SORT_KEY: tableConfigurations.players.sortKey as string,
+
+    // Games table
+    GAMES_TABLE_NAME: tableConfigurations.games.name,
+    GAMES_TABLE_PARTITION_KEY: tableConfigurations.games.partitionKey
+  }
 }
