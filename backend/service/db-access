@@ -1,0 +1,169 @@
+
+import {Game, User, Player, Auth} from "./dao-interfaces";
+
+var AWS = require("aws-sdk");
+AWS.config.update({region: "us-east-1"});
+var dynamodb = new AWS.DynamoDB({apiVersion: "2012-08-10"});
+var documentClient = new AWS.DynamoDB.DocumentClient();
+
+const gameTableName = "Game";
+const userTableName = "User";
+const playerTableName = "Player";
+const authTableName = "Auth";
+
+//gets (single item)
+
+export async function getGame(gameCode: string): Promise<Game | undefined> {
+    try {
+        var params = {
+            Key: {
+             "id": {"S": gameCode}, 
+            }, 
+            TableName: gameTableName
+        };
+        var result = await dynamodb.getItem(params).promise()
+        return result;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export async function getUser(userID: string): Promise<User | undefined> {
+    try {
+        var params = {
+            Key: {
+             "code": {"S": userID}, 
+            }, 
+            TableName: userTableName
+        };
+        var result = await dynamodb.getItem(params).promise()
+        return result;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export async function getPlayer(playerID: string): Promise<Player | undefined> {
+    try {
+        var params = {
+            Key: {
+             "id": {"S": playerID}, 
+            }, 
+            TableName: playerTableName
+        };
+        var result = await dynamodb.getItem(params).promise()
+        return result;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export async function getAuth(authID: string): Promise<Auth | undefined> {
+    try {
+        var params = {
+            Key: {
+             "id": {"S": authID}, 
+            }, 
+            TableName: authTableName
+        };
+        var result = await dynamodb.getItem(params).promise()
+        return result;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+//gets (batch)
+
+export async function getPlayersForGame(gameCode: string): Promise<Player[] | undefined> {
+    try {
+        var params = {
+            KeyConditionExpression: 'gameCode = :game-code',
+            ExpressionAttributeValues: {
+                ':game-code': gameCode
+            },
+            TableName: playerTableName
+        };
+        var result = await documentClient.query(params).promise()
+        return result;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+//puts (single item)
+
+export async function putGame(game : Game): Promise<boolean | undefined> { //TODO: check what we're returning
+    try {
+        var params = {
+            TableName: gameTableName,
+            Item: {
+                "code": game["code"],
+                "display-name": game["display-name"],
+                "id":  game["host-name"]
+            }
+        };
+        var result = await dynamodb.putItem(params).promise()
+        return result;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export async function putUser(user : User): Promise<boolean | undefined> { //TODO: check what we're returning
+    try {
+        var params = {
+            TableName: userTableName,
+            Item: {
+                "id": user["id"],
+                "phone-number": user["phone-number"],
+                "email":  user["email"]
+            }
+        };
+        var result = await dynamodb.putItem(params).promise()
+        return result;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+export async function putPlayer(player : Player): Promise<boolean | undefined> { //TODO: check what we're returning
+    try {
+        var params = {
+            TableName: playerTableName,
+            Item: {
+                "id": player["id"],
+                "display-name": player["display-name"],
+                "game-code":  player["game-code"],
+                "assigned-to": player["assigned-to"]
+            }
+        };
+        var result = await dynamodb.putItem(params).promise()
+        return result;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+
+export async function putAuth(auth : Auth): Promise<boolean | undefined> { //TODO: check what we're returning
+    try {
+        var params = {
+            TableName: authTableName,
+            Item: {
+                "id": auth["id"],
+                "otp": auth["otp"],
+                "auth-token":  auth["auth-token"]
+            }
+        };
+        var result = await dynamodb.putItem(params).promise()
+        return result;
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+//TODO: updates
+
+
+
