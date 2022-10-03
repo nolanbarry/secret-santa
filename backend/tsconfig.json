@@ -15,7 +15,8 @@
     "moduleResolution": "node",
     "rootDir": "./src",
     "outDir": "./build",
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "sourceMap": true
   },
   "include": ["src/"],
   "exclude": ["node_modules", "**/*.spec.ts"]
