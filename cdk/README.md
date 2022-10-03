@@ -1,8 +1,33 @@
-# Welcome to your CDK TypeScript project
+# Welcome to Secret Santa CDK
 
-This is a blank project for CDK development with TypeScript.
+## To deploy
+### Do once before:
+Install AWS CLI from [here](https://aws.amazon.com/cli/), on the side bar.
+Install the CDK CLI with npm:
+```sh
+npm install -g aws-cdk  
+```
+Add your credentials to the aws cli. It will ask for credentials which can be found in the AWS console by going to [Your security credentials](https://us-east-1.console.aws.amazon.com/iam/home#/security_credentials$access_key) and clicking `Create new access key`. You can also create and configure an IAM user, which is a little bit a pain but is safer. `us-west-2` is the closest region to Utah so I recommend using it.
+```
+aws configure
+```
+Create the required resources to deploy to CDK:
+```bash
+cd backend
+npm install
+cd ../cdk
+npm install
+python3 build
+cdk bootstrap
+```
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+### When you deploy
+Do the following to deploy changes to lambdas, etc:
+```bash
+cd cdk
+python3 build
+cdk deploy
+```
 
 ## Useful commands
 
