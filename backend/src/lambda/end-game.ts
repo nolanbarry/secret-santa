@@ -10,7 +10,12 @@ const requestParameters = ['authToken', 'gameCode']
 async function handler(event: APIGatewayEvent, context: Context) {
   const { authToken, gameCode } = validateRequestBody(event.body, requestParameters)
 
-  console.log(authToken, gameCode)
+  // verify authtoken, retrieve user
+  // retrieve game
+  // retrieve player that is the host
+  // verify that player's user id and is the same as retrieved user's id
+  // if not, return not authorized
+  // if good, delete game and all associated player objects
 
   return response(200, { message: "Function not implemented." })
 };

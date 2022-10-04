@@ -16,3 +16,6 @@ Run tests in the commandline with:
 npm test
 ```
 This project uses [Mocha](https://mochajs.org/) as our testing framework with [Chai](https://www.chaijs.com/api/) for assertion functions.
+
+### Helpful Documentation
+- [AWS Javascript SDK Documentation](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/#getting-started)

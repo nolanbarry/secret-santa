@@ -10,7 +10,11 @@ const requestParameters = ['authToken', 'gameCode', 'displayName']
 async function handler(event: APIGatewayEvent, context: Context) {
   const { authToken, gameCode, displayName } = validateRequestBody(event.body, requestParameters)
 
-  console.log(authToken, gameCode, displayName)
+  // verify authtoken and retrieve user
+  // retrieve player
+  // verify player.id is user.id
+  // return player if user has authorization
+  // otherwise return not authorized
 
   return response(200, { message: "Hello world!" })
 };
