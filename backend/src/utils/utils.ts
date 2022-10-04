@@ -1,4 +1,5 @@
 import { APIGatewayEvent, APIGatewayProxyResult, Context } from 'aws-lambda'
+import { randomInt, randomUUID } from 'crypto';
 import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch';
 import { HTTPError } from '../model/error'
 import constants from './constants'
@@ -106,6 +107,29 @@ export function validateRequestBody(body: string | null, requiredProperties: str
   }
   const body: any = await response.json();
   return body;
+}
+
+/**
+ * Generate a random of string of length `length` with characters randomly selected from
+ * `validCharacters`.
+ * @param validCharacters A string containing characters that can be in the random string, 
+ * i.e. "ABCDEFGHIJKLMNOPQRSTUVWXYZ" for a random string containing only uppercase letters.
+ * @param length The length of the returned string
+ */
+export function generateRandomString(validCharacters: string, length: number): string {
+  let randomString = ""
+  for (let i = 0; i < length; i++) {
+    randomString += validCharacters[randomInt(0, validCharacters.length)]
+  }
+  return randomString
+}
+
+/**
+ * Generates a random user id.
+ * @returns A new user id.
+ */
+export function generateUserId(): string {
+  return randomUUID()
 }
 
 
