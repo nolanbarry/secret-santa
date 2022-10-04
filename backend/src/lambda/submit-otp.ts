@@ -13,7 +13,9 @@ const requestParameters = ['id', 'otp']
 async function handler(event: APIGatewayEvent, context: Context) {
   const { id, otp } = validateRequestBody(event.body, requestParameters)
 
-  console.log(id, otp)
+  // look up id & otp in auth table
+  // if exists, add authtoken to auth table entry and return it
+  // if not, return 404 or 400 or similar
 
   return response(200, { message: "Function not implemented." })
 };

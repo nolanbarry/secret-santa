@@ -1,6 +1,6 @@
 import { describe, it } from 'mocha'
 import { validateRequestBody } from '../../src/utils/utils'
-import { expect, util } from 'chai'
+import { expect } from 'chai'
 import { HTTPError } from '../../src/model/error'
 
 describe('validateRequestBody()', () => {

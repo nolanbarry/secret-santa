@@ -10,7 +10,8 @@ const requestParameters = ['authToken']
 async function handler(event: APIGatewayEvent, context: Context) {
   const { authToken } = validateRequestBody(event.body, requestParameters)
 
-  console.log(authToken)
+  // verify authtoken, retrieve user
+  // return user
 
   return response(200, { message: "Function not implemented." })
 };

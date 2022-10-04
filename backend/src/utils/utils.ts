@@ -1,7 +1,7 @@
 import { APIGatewayEvent, APIGatewayProxyResult, Context } from 'aws-lambda'
 import fetch, { RequestInfo, RequestInit, Response } from 'node-fetch';
 import { HTTPError } from '../model/error'
-import { constants } from './constants'
+import constants from './constants'
 
 
 /**
@@ -107,3 +107,5 @@ export function validateRequestBody(body: string | null, requiredProperties: str
   const body: any = await response.json();
   return body;
 }
+
+
