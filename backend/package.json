@@ -4,6 +4,9 @@
     "test": "nyc npm run run-tests"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.183.0",
+    "@aws-sdk/client-ses": "^3.183.0",
+    "@aws-sdk/client-sns": "^3.183.0",
     "aws-lambda": "^1.0.7",
     "node-fetch": "^2.6.1"
   },

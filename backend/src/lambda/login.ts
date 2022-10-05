@@ -10,7 +10,11 @@ const requestParameters = ['contact']
 async function handler(event: APIGatewayEvent, context: Context) {
   const { contact } = validateRequestBody(event.body, requestParameters)
 
-  console.log(contact)
+  // search for contact in users table
+  // if contact doesn't exist, create an entry
+  // create auth table entry with new otp and user id
+  // text/email otp to user
+  // return 200 OK {success: true}
 
   return response(200, { message: "Function not implemented." })
 };

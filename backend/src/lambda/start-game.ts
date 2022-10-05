@@ -10,7 +10,12 @@ const requestParameters = ['authToken', 'gameCode']
 async function handler(event: APIGatewayEvent, context: Context) {
   const { authToken, gameCode, displayName } = validateRequestBody(event.body, requestParameters)
 
-  console.log(authToken, gameCode, displayName)
+  // verify authtoken, retrieve user
+  // retrieve game by gameCode
+  // retrieve host of game
+  // verify host of game id == user.id
+  // make assignments and text/email to everyone
+  // update game status as started
 
   return response(200, { message: "Function not implemented." })
 };
