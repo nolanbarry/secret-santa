@@ -3,6 +3,7 @@
 import os
 import time
 from colorama import Fore, Style
+from subprocess import PIPE, Popen
 
 
 def build():
@@ -21,9 +22,9 @@ def build():
         return typescriptCompilation
 
     print(f"\n🔨 {Style.BRIGHT+Fore.CYAN}(4/4) Installing node_modules in layer/nodejs folder{Style.RESET_ALL}")
-    packages = os.system(
-        "cd ../backend && mkdir -p layer/nodejs && cp package*.json layer/nodejs && cd layer/nodejs && npm i")
-    if packages > 0:
+    packages = Popen(
+        "cd ../backend && mkdir -p layer/nodejs && cp package.json package-lock.json layer/nodejs && cd layer/nodejs && npm i".split(), shell=True)
+    if packages.returncode:
         return packages
 
 
