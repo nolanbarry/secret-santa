@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+import HomeMenu from '../components/HomeMenu.vue'
+import TitleLogo from '../components/TitleLogo.vue'
 </script>
 
 <template>
   <main>
-    <TheWelcome />
+    <TitleLogo />
+    <HomeMenu />
   </main>
 </template>
