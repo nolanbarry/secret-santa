@@ -3,26 +3,27 @@
 import os
 import time
 from colorama import Fore, Style
+from subprocess import Popen
 
 
 def build():
     print(
         f"🔎 {Style.BRIGHT+Fore.CYAN}(1/4) Verifying packages are installed{Style.RESET_ALL}")
-    os.system('cd ../backend && npm i')
+    Popen('cd ../backend && npm i', shell=True).wait()
 
     print(
         f"\n🧹 {Style.BRIGHT+Fore.CYAN}(2/4) Cleaning up previous build{Style.RESET_ALL}")
-    os.system('rm -rf ../backend/build')
+    Popen('rm -rf ../backend/build', shell=True).wait()
 
     print(
         f"\n🧪 {Style.BRIGHT+Fore.CYAN}(3/4) Compiling typescript{Style.RESET_ALL}")
-    typescriptCompilation = os.system("cd ../backend && npx tsc")
+    typescriptCompilation = Popen("cd ../backend && npx tsc", shell=True).wait()
     if typescriptCompilation > 0:
         return typescriptCompilation
 
     print(f"\n🔨 {Style.BRIGHT+Fore.CYAN}(4/4) Installing node_modules in layer/nodejs folder{Style.RESET_ALL}")
-    packages = os.system(
-        "cd ../backend && mkdir -p layer/nodejs && cp package*.json layer/nodejs && cd layer/nodejs && npm i")
+    packages = Popen(
+        "cd ../backend && mkdir -p layer/nodejs && cp package.json package-lock.json layer/nodejs && cd layer/nodejs && npm i".split(), shell=True).wait()
     if packages > 0:
         return packages
 
