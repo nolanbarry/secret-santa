@@ -21,7 +21,7 @@ export async function getUserIdByContactString(contactString: string) {
     throw new HTTPError(400, `"${contactString}" isn't a valid phone number or email.`)
   }
   const usersTable = constants.tables.users
-  const index = ModeOfContact.Email ? usersTable.indexes.byEmail : usersTable.indexes.byPhoneNumber
+  const index = modeOfContact == ModeOfContact.Email ? usersTable.indexes.byEmail : usersTable.indexes.byPhoneNumber
   // indexes are only queryable, but there should only ever be one item in the index with 
   // this contact string.
   let query = await ddb.query({
@@ -36,7 +36,7 @@ export async function getUserIdByContactString(contactString: string) {
     }
   })
   let id: string;
-  if (!!query.Items && query.Items.length >= 0) {
+  if (!!query.Items && query.Items.length > 0) {
     id = query.Items[0][usersTable.partitionKey].S as string
   } else {
     // no user exists with this contact string, create one

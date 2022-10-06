@@ -3,7 +3,7 @@ import { validateRequestBody } from '../../src/utils/utils'
 import { expect } from 'chai'
 import { HTTPError } from '../../src/model/error'
 
-describe('validateRequestBody()', () => {
+describe('utils: validateRequestBody()', () => {
   it('Throws error for no body', function() {
     expect(() => validateRequestBody(null, [])).to.throw(HTTPError)
   })

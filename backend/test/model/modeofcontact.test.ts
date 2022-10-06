@@ -34,7 +34,7 @@ const invalidPhoneNumbers = [
 // email/phone number validation just needs to be good enough: it shouldn't have ANY 
 // false negatives (a user with a valid email should never have problems), but a few
 // false positives are fine
-describe("getModeOfContact()", () => {
+describe("modeofcontact: getModeOfContact()", () => {
   it("correctly identifies emails", function() {
     for (let validEmail of validEmails) {
       expect(getModeOfContact(validEmail)).to.equal(ModeOfContact.Email)
