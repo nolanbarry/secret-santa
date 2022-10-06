@@ -4,7 +4,7 @@ import chaiAsPromised from 'chai-as-promised'
 import { AwsStub, mockClient } from 'aws-sdk-client-mock'
 import { DynamoDBClient, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes } from '@aws-sdk/client-dynamodb'
 import { marshall } from '@aws-sdk/util-dynamodb';
-import { getUserIdByContactString } from '../../src/services/dynamodb'
+import { getUserIdByContactString, login } from '../../src/services/dynamodb'
 import sinon from 'sinon'
 import * as modeOfContact from '../../src/model/modeofcontact'
 import * as utils from '../../src/utils/utils'
@@ -64,6 +64,15 @@ describe("dynamodb: getUserIdByContactString()", () => {
     })
     dynamodbMock.on(PutItemCommand).resolvesOnce({})
     await expect(getUserIdByContactString('email@email.com'), "returns generated user id").to.eventually.equal('<GENERATED-USER-ID>')
-    expect(dynamodbMock.calls().length == 2, "ddb called twice")
+    expect(dynamodbMock.calls().length, "ddb called twice").to.equal(2)
+  })
+})
+
+describe("dynamodb: login()", () => {
+  it("Creates table entry", async () => {
+    sinon.stub(utils, "generateRandomString").returns('123456')
+    dynamodbMock.on(PutItemCommand).resolves({})
+    await expect(login('<USER-ID>')).to.eventually.equal('123456')
+    expect(dynamodbMock.commandCalls(PutItemCommand).length, "put item called once").to.equal(1)
   })
 })
