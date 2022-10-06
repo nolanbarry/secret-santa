@@ -10,6 +10,13 @@ import * as modeOfContact from '../../src/model/modeofcontact'
 import * as utils from '../../src/utils/utils'
 import constants from '../../src/utils/constants'
 
+/*
+ * Helpful Documentation:
+ * AWS SDK Client Mocks: https://m-radzikowski.github.io/aws-sdk-client-mock/#usage
+ * Chai as promised plugin: https://www.chaijs.com/plugins/chai-as-promised/
+ * Mocking imports: https://railsware.com/blog/mocking-es6-module-import-without-dependency-injection/
+ */
+
 use(chaiAsPromised)
 
 let dynamodbMock: AwsStub<ServiceInputTypes, ServiceOutputTypes>
