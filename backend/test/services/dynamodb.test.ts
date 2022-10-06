@@ -9,6 +9,7 @@ import sinon from 'sinon'
 import * as modeOfContact from '../../src/model/modeofcontact'
 import * as utils from '../../src/utils/utils'
 import constants from '../../src/utils/constants'
+import { HTTPError } from '../../src/model/error'
 
 /*
  * Helpful Documentation:
@@ -54,6 +55,12 @@ describe("dynamodb: getUserIdByContactString()", () => {
     dynamodbMock.on(QueryCommand, { IndexName: constants.tables.users.indexes.byEmail.name }).rejectsOnce()
     await expect(getUserIdByContactString("+p (hon)-enu-mber"), "returns user id").to.eventually.equal('<USER-ID>')
     expect(getModeOfContactStub.calledOnceWithExactly("+p (hon)-enu-mber"), "getModeOfContact called once").to.be.true
+  })
+
+  it("Throws error if mode of contact is invalid", async () => {
+    const getModeOfContactStub = sinon.stub(modeOfContact, 'getModeOfContact').returns('invalid')
+    await expect(getUserIdByContactString("not valid"), "throws error").to.eventually.be.rejectedWith(HTTPError)
+    expect(getModeOfContactStub.calledOnceWithExactly("not valid"), "getModeOfContact called once").to.be.true
   })
 
   it("Creates user if one doesn't exist", async () => {

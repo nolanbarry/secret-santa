@@ -35,7 +35,7 @@ export function errorHandling(error: Error): APIGatewayProxyResult {
     return response(error.statusCode, error.body);
   } else {
     console.error('Error: ', error);
-    return response(500, "Internal Server Error");
+    return response(500, { message: "Internal Server Error" });
   }
 }
 
@@ -59,7 +59,7 @@ export type Handler = (event: APIGatewayEvent, context: Context) => Promise<APIG
  * @returns The same handler wrapped in a try/catch block
  */
 export function lambda(handler: Handler): Handler {
-  const wrapper = async function(event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> {
+  const wrapper = async function (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> {
     try {
       return await handler(event, context)
     } catch (error: any) {
@@ -77,7 +77,7 @@ export function lambda(handler: Handler): Handler {
  * @param requiredProperties The name of the parameters expected to be in `body`
  * @returns `body`, parsed into an object.
  */
-export function validateRequestBody(body: string | null, requiredProperties: string[]): {[key: string]: unknown} {
+export function validateRequestBody(body: string | null, requiredProperties: string[]): { [key: string]: unknown } {
   if (!body) throw new HTTPError(400, "Request body is required");
   let parsed;
   try {
@@ -99,7 +99,7 @@ export function validateRequestBody(body: string | null, requiredProperties: str
  * @param args A RequestInfo and RequestInit object; the same arguments passed to `fetch`.
  * @returns A response body
  */
- export async function fetchJson(...args: [RequestInfo, RequestInit]): Promise<any> {
+export async function fetchJson(...args: [RequestInfo, RequestInit]): Promise<any> {
   const response: Response = await fetch(...args);
   if (!response.ok) {
     console.error(response)
