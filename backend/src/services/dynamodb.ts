@@ -54,14 +54,22 @@ export async function getUserIdByContactString(contactString: string) {
   return id
 }
 
+/**
+ * Creates an auth table entry for a user and returns the OTP required to to get an authorization
+ * token.
+ * @param userId The id of the user. See `getUserIdByContactString`
+ * @returns An OTP. OTPs are 6-digit numeric strings, i.e. `"123456"`.
+ */
 export async function login(userId: string) {
   let otp = generateRandomString("1234567890", constants.otpLength)
+  // TODO: Impose a limit on the number of auth table entries a user
+  // can have, replace the oldest one if the limit has been reached.
   await ddb.putItem({
     TableName: schema.auth.name,
     Item: marshall({
       [schema.auth.partitionKey]: userId,
       [schema.auth.schema.otp]: otp,
-      [schema.auth.ttlKey]: Date.now() / 1000 + schema.auth.ttlLength
+      [schema.auth.ttlKey]: Date.now() / 1000 + schema.auth.otpTTL
     })
   })
   return otp

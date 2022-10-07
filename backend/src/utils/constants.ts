@@ -7,8 +7,10 @@ const tables = {
     name: process.env["AUTH_TABLE_NAME"] ?? "auth table",
     partitionKey: process.env["AUTH_TABLE_PARTITION_KEY"] ?? "auth table partition key",
     sortKey: process.env["AUTH_TABLE_SORT_KEY"] ?? "auth table sort key",
-    /** Number of seconds before a table entry should expire */
-    ttlLength: 60 * 60 * 24 * 3, // 3 days 
+    /** Number of seconds since last use before an auth table entry with an auth token should expire */
+    authTokenTTL: 60 * 60 * 24 * 3, // 3 days 
+    /** Number of seconds before an auth table entry with just an OTP should expire */
+    otpTTL: 60 * 5, // 5 minutes
     /** The name of the key that dynamodb scans to determine when an entry should expire. Key should be set the datetime, in 
     * epoch seconds, that the entry should expire */
     ttlKey: process.env["AUTH_TABLE_TTL_KEY"] ?? "auth table ttl key",
