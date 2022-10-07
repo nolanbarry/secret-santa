@@ -2,18 +2,23 @@
 </script>
     
 <template>
+    <div class="text-input-div">
+        <p>Enter exchange code:</p>
+        <v-text-field
+            label="Filled"
+            placeholder="Placeholder"
+            Exchange code
+        ></v-text-field>
+        <p>Enter your name:</p>
+        <v-text-field
+            label="Filled"
+            placeholder="Placeholder"
+            Your name
+        ></v-text-field>
+    </div>
     <div class="button-div">
-        <router-link to="/login" class="button">
-            Create a new Game
-        </router-link>
-
-        <!-- changed to join purely for debugging purposes on the join page -->
-        <router-link to="/joinExchange" class="button"> 
-            Join a Game
-        </router-link>
-
-        <router-link to="/login" class="button">
-            View my Games
+        <router-link to="/" class="button">
+            Join Exchange
         </router-link>
     </div>
 </template>
@@ -47,5 +52,3 @@
         cursor: pointer;
     }
 </style>
-  
-    
