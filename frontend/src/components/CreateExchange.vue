@@ -2,24 +2,31 @@
 </script>
     
 <template>
+    <div class="text-input-div">
+        <p>Enter a name for your new exchange:</p>
+        <input type="text" 
+            placeholder="Exchange name" 
+            v-model="name" />
+        <p>Enter your name:</p>
+        <input type="text" 
+            placeholder="Your name" 
+            v-model="name" />
+    </div>
     <div class="button-div">
-        <!-- changed to create purely for debugging purposes on the create page -->
-        <router-link to="/createExchange" class="button">
-            Create a new Game
-        </router-link>
-
-        <!-- changed to join purely for debugging purposes on the join page -->
-        <router-link to="/joinExchange" class="button"> 
-            Join a Game
-        </router-link>
-
-        <router-link to="/login" class="button">
-            View my Games
+        <router-link to="/" class="button">
+            Create Exchange
         </router-link>
     </div>
 </template>
 
 <style scoped lang="scss">
+
+    .text-input-div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
 
     .button-div {
         display: flex;
@@ -48,5 +55,3 @@
         cursor: pointer;
     }
 </style>
-  
-    

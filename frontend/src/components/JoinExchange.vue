@@ -3,9 +3,9 @@
     
 <template>
     <div class="text-input-div">
-        <p>Enter game code:</p>
+        <p>Enter exchange code:</p>
         <input type="text" 
-            placeholder="Game code" 
+            placeholder="Exchange code" 
             v-model="name" />
         <p>Enter your name:</p>
         <input type="text" 
