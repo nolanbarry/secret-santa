@@ -3,18 +3,14 @@
     
 <template>
     <div class="text-input-div">
-        <p>Enter exchange code:</p>
-        <v-text-field
-            label="Filled"
-            placeholder="Placeholder"
-            Exchange code
-        ></v-text-field>
+        <p>Enter game code:</p>
+        <input type="text" 
+            placeholder="Game code" 
+            v-model="name" />
         <p>Enter your name:</p>
-        <v-text-field
-            label="Filled"
-            placeholder="Placeholder"
-            Your name
-        ></v-text-field>
+        <input type="text" 
+            placeholder="Your name" 
+            v-model="name" />
     </div>
     <div class="button-div">
         <router-link to="/" class="button">
@@ -24,6 +20,13 @@
 </template>
 
 <style scoped lang="scss">
+
+    .text-input-div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
 
     .button-div {
         display: flex;
