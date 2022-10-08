@@ -11,6 +11,8 @@ const userTableName = "User";
 const playerTableName = "Player";
 const authTableName = "Auth";
 
+//TODO: Come up with a factory system?
+
 //gets (single item)
 
 export async function getGame(gameCode: string): Promise<Game | undefined> {
@@ -163,8 +165,7 @@ export async function putAuth(auth : Auth): Promise<boolean | undefined> { //TOD
     }
 }
 
-
-//updates (single item) TODO: do we want to keep these? Or would using only "put" be simpler?
+// updates (single item) TODO: do we want to keep these? Or would using only "put" be simpler?
 // put replaces an item while update only updates the fields
 
 export async function updateGame(game : Game): Promise<boolean | undefined> { //TODO: check what we're returning
@@ -236,6 +237,10 @@ export async function updateAuth(auth : Auth): Promise<boolean | undefined> { //
         console.error(error);
     }
 }
+
+//TODO: set up deletes
+
+
 
 
 
