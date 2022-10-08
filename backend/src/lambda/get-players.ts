@@ -10,7 +10,8 @@ const requestParameters = ['authToken']
 async function handler(event: APIGatewayEvent, context: Context) {
   const { authToken } = validateRequestBody(event.body, requestParameters)
 
-  console.log(authToken)
+  // verify auth token, retrieve user
+  // query for and return player objects with id = user.id
 
   return response(200, { message: "Function not implemented." })
 };

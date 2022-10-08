@@ -10,7 +10,10 @@ const requestParameters = ['authToken', 'gameCode', 'displayName']
 async function handler(event: APIGatewayEvent, context: Context) {
   const { authToken, gameCode, displayName } = validateRequestBody(event.body, requestParameters)
 
-  console.log(authToken, gameCode, displayName)
+  // verify authtoken, retrieve user
+  // verify someone with that display name isn't already in the game
+  // return 200 OK with success: false and message: "Display name taken" if display name is taken
+  // join game
 
   return response(200, { message: "Function not implemented." })
 };

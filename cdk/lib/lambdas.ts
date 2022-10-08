@@ -206,6 +206,7 @@ function getLambdaEnvironmentVariables() {
     AUTH_TABLE_SORT_KEY: tableConfigurations.auth.sortKey as string,
     AUTH_TABLE_AUTH_TOKEN_INDEX_NAME: tableConfigurations.auth.globalIndexes[0].name,
     AUTH_TABLE_AUTH_TOKEN_INDEX_PARTITION_KEY: tableConfigurations.auth.globalIndexes[0].partitionKey,
+    AUTH_TABLE_TTL_KEY: tableConfigurations.auth.ttlKey as string,
 
     // Users table
     USERS_TABLE_NAME: tableConfigurations.users.name,
