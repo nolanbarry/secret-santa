@@ -1,11 +1,15 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import { Game, User, Player, Auth } from "../model/dao-interfaces";
 import { HTTPError } from "../model/error";
 import { getModeOfContact, ModeOfContact } from "../model/modeofcontact";
 import constants from "../utils/constants";
 import { generateRandomString, generateUserId } from "../utils/utils";
 
+var AWS = require("aws-sdk");
+
 const ddb = new DynamoDB({region: constants.region})
+const documentClient = new AWS.DynamoDB.DocumentClient();
 const schema = constants.tables
 
 /**
@@ -73,4 +77,314 @@ export async function login(userId: string) {
     })
   })
   return otp
+}
+
+
+/**
+ * Retrieves (if possible) auth token from the auth table, then returns the associated user id. 
+ * Returns null if the auth token doesn't exist. 
+ * 
+ * TODO: We should add/update some kind of lastUsed property in this function, 
+ * but we can add that later if needs be.
+ * 
+ * @param authToken The authToken to authenticate.`
+ * @returns The userID, a unique random string to identify the user. 
+ */
+ export async function authenticate(authToken: string) {
+  
+  let authEntry = await ddb.getItem({
+    TableName: schema.auth.name,
+    Item: marshall({
+      [schema.auth.partitionKey]: authToken,
+    })
+  })
+  return authEntry.userID
+}
+
+
+
+
+//gets (single item)
+
+export async function getGame(gameCode: string): Promise<Game | undefined> {
+  try {
+      const params = {
+          Key: {
+           "id": {"S": gameCode}, 
+          }, 
+          TableName: schema.games.name
+      };
+      const result = await ddb.getItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+export async function getUser(userID: string): Promise<User | undefined> {
+  try {
+      const params = {
+          Key: {
+           "code": {"S": userID}, 
+          }, 
+          TableName: schema.users.name
+      };
+      const result = await ddb.getItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+export async function getPlayer(playerID: string): Promise<Player | undefined> {
+  try {
+      const params = {
+          Key: {
+           "id": {"S": playerID}, 
+          }, 
+          TableName: schema.players.name
+      };
+      const result = await ddb.getItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+export async function getAuth(authID: string): Promise<Auth | undefined> {
+  try {
+      const params = {
+          Key: {
+           "id": {"S": authID}, 
+          }, 
+          TableName: schema.auth.name
+      };
+      const result = await ddb.getItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+//gets (batch)
+
+export async function getPlayersForGame(gameCode: string): Promise<Player[] | undefined> {
+  try {
+      const params = {
+          KeyConditionExpression: 'gameCode = :game-code',
+          ExpressionAttributeValues: {
+              ':game-code': gameCode
+          },
+          TableName: schema.players.name
+      };
+      const result = await documentClient.query(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+//puts (single item)
+
+export async function putGame(game : Game): Promise<boolean | undefined> { //TODO: check what we're returning
+  try {
+      const params = {
+          TableName: schema.games.name,
+          Item: {
+              "code": game["code"],
+              "display-name": game["display-name"],
+              "id":  game["host-name"]
+          }
+      };
+      const result = await ddb.putItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+export async function putUser(user : User): Promise<boolean | undefined> { //TODO: check what we're returning
+  try {
+      const params = {
+          TableName: schema.users.name,
+          Item: {
+              "id": user["id"],
+              "phone-number": user["phone-number"],
+              "email":  user["email"]
+          }
+      };
+      const result = await ddb.putItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+export async function putPlayer(player : Player): Promise<boolean | undefined> { //TODO: check what we're returning
+  try {
+      const params = {
+          TableName: schema.players.name,
+          Item: {
+              "id": player["id"],
+              "display-name": player["display-name"],
+              "game-code":  player["game-code"],
+              "assigned-to": player["assigned-to"]
+          }
+      };
+      const result = await ddb.putItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+
+export async function putAuth(auth : Auth): Promise<boolean | undefined> { //TODO: check what we're returning
+  try {
+      const params = {
+          TableName: schema.auth.name,
+          Item: {
+              "id": auth["id"],
+              "otp": auth["otp"],
+              "auth-token":  auth["auth-token"]
+          }
+      };
+      const result = await ddb.putItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+// updates (single item) TODO: do we want to keep these? Or would using only "put" be simpler?
+// put replaces an item while update only updates the fields
+
+export async function updateGame(game : Game): Promise<boolean | undefined> { //TODO: check what we're returning
+  try {
+      const params = {
+          TableName: schema.games.name,
+          Item: {
+              "code": game["code"],
+              "display-name": game["display-name"],
+              "id":  game["host-name"]
+          }
+      };
+      const result = await ddb.updateItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+export async function updateUser(user : User): Promise<boolean | undefined> { //TODO: check what we're returning
+  try {
+      const params = {
+          TableName: schema.users.name,
+          Item: {
+              "id": user["id"],
+              "phone-number": user["phone-number"],
+              "email":  user["email"]
+          }
+      };
+      const result = await ddb.updateItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+export async function updatePlayer(player : Player): Promise<boolean | undefined> { //TODO: check what we're returning
+  try {
+      const params = {
+          TableName: schema.players.name,
+          Item: {
+              "id": player["id"],
+              "display-name": player["display-name"],
+              "game-code":  player["game-code"],
+              "assigned-to": player["assigned-to"]
+          }
+      };
+      const result = await ddb.updateItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+
+export async function updateAuth(auth : Auth): Promise<boolean | undefined> { //TODO: check what we're returning
+  try {
+      const params = {
+          TableName: schema.auth.name,
+          Item: {
+              "id": auth["id"],
+              "otp": auth["otp"],
+              "auth-token":  auth["auth-token"]
+          }
+      };
+      const result = await ddb.updateItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+export async function deleteGame(gameCode: string): Promise<boolean | undefined> {
+  try {
+      const params = {
+          Key: {
+           "id": {"S": gameCode}, 
+          }, 
+          TableName: schema.games.name
+      };
+      const result = await ddb.deleteItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+export async function deleteUser(userID: string): Promise<User | undefined> {
+  try {
+      const params = {
+          Key: {
+           "code": {"S": userID}, 
+          }, 
+          TableName: schema.users.name
+      };
+      const result = await ddb.deleteItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+export async function deletePlayer(playerID: string): Promise<Player | undefined> {
+  try {
+      const params = {
+          Key: {
+           "id": {"S": playerID}, 
+          }, 
+          TableName: schema.players.name
+      };
+      const result = await ddb.deleteItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
+}
+
+export async function deleteAuth(authID: string): Promise<Auth | undefined> {
+  try {
+      const params = {
+          Key: {
+           "id": {"S": authID}, 
+          }, 
+          TableName: schema.auth.name
+      };
+      const result = await ddb.deleteItem(params).promise()
+      return result;
+  } catch (error) {
+      console.error(error);
+  }
 }
