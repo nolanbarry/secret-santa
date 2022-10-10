@@ -92,13 +92,44 @@ export async function login(userId: string) {
  */
  export async function authenticate(authToken: string) {
   
-  let authEntry = await ddb.getItem({
+  let res = await ddb.getItem({
     TableName: schema.auth.name,
     Item: marshall({
       [schema.auth.partitionKey]: authToken,
     })
   })
-  return authEntry.userID
+  let auth = unmarshall(res.Item) as Auth;
+  return auth.id
+}
+
+/**
+ * Retrieves the players with a given userid and returns them. You’ll need to make a 
+ * function that maps a dynamodb Item to a Player type of object (also needs to be created). 
+ * see our database model for attribute names. add attribute names to constants.ts instead 
+ * of using naked strings.
+ * 
+ * TODO: We should add/update some kind of lastUsed property in this function, 
+ * but we can add that later if needs be.
+ * 
+ * @param userID The userID that belongs to the user we're retrieving players for.`
+ * @returns An array of the players that are stored under a single user's id
+ */
+ export async function getPlayersForUser(userID: string) {
+  
+  try {
+    const params = {
+        KeyConditionExpression: 'id = :id',
+        ExpressionAttributeValues: {
+            ':id': userID
+        },
+        TableName: schema.players.name
+    };
+    const res = await documentClient.query(params).promise()
+    let players = unmarshall(res.Item) as Player[];
+    return players;
+  } catch (error) {
+      console.error(error);
+  }
 }
 
 
@@ -114,8 +145,8 @@ export async function getGame(gameCode: string): Promise<Game | undefined> {
           }, 
           TableName: schema.games.name
       };
-      const result = await ddb.getItem(params).promise()
-      return result;
+      const res = await ddb.getItem(params).promise()
+      return unmarshall(res.Item) as Game;
   } catch (error) {
       console.error(error);
   }
@@ -129,8 +160,8 @@ export async function getUser(userID: string): Promise<User | undefined> {
           }, 
           TableName: schema.users.name
       };
-      const result = await ddb.getItem(params).promise()
-      return result;
+      const res = await ddb.getItem(params).promise()
+      return unmarshall(res.Item) as User;
   } catch (error) {
       console.error(error);
   }
@@ -144,8 +175,8 @@ export async function getPlayer(playerID: string): Promise<Player | undefined> {
           }, 
           TableName: schema.players.name
       };
-      const result = await ddb.getItem(params).promise()
-      return result;
+      const res = await ddb.getItem(params).promise()
+      return unmarshall(res.Item) as Player;
   } catch (error) {
       console.error(error);
   }
@@ -159,8 +190,8 @@ export async function getAuth(authID: string): Promise<Auth | undefined> {
           }, 
           TableName: schema.auth.name
       };
-      const result = await ddb.getItem(params).promise()
-      return result;
+      const res = await ddb.getItem(params).promise()
+      return unmarshall(res.Item) as Auth;
   } catch (error) {
       console.error(error);
   }
@@ -177,8 +208,8 @@ export async function getPlayersForGame(gameCode: string): Promise<Player[] | un
           },
           TableName: schema.players.name
       };
-      const result = await documentClient.query(params).promise()
-      return result;
+      const res = await documentClient.query(params).promise()
+      return unmarshall(res.Item) as Player[];
   } catch (error) {
       console.error(error);
   }
@@ -196,8 +227,8 @@ export async function putGame(game : Game): Promise<boolean | undefined> { //TOD
               "id":  game["host-name"]
           }
       };
-      const result = await ddb.putItem(params).promise()
-      return result;
+      const res = await ddb.putItem(params).promise()
+      return res;
   } catch (error) {
       console.error(error);
   }
@@ -213,8 +244,8 @@ export async function putUser(user : User): Promise<boolean | undefined> { //TOD
               "email":  user["email"]
           }
       };
-      const result = await ddb.putItem(params).promise()
-      return result;
+      const res = await ddb.putItem(params).promise()
+      return res;
   } catch (error) {
       console.error(error);
   }
@@ -231,8 +262,8 @@ export async function putPlayer(player : Player): Promise<boolean | undefined> {
               "assigned-to": player["assigned-to"]
           }
       };
-      const result = await ddb.putItem(params).promise()
-      return result;
+      const res = await ddb.putItem(params).promise()
+      return res;
   } catch (error) {
       console.error(error);
   }
@@ -249,8 +280,8 @@ export async function putAuth(auth : Auth): Promise<boolean | undefined> { //TOD
               "auth-token":  auth["auth-token"]
           }
       };
-      const result = await ddb.putItem(params).promise()
-      return result;
+      const res = await ddb.putItem(params).promise()
+      return res;
   } catch (error) {
       console.error(error);
   }
@@ -269,8 +300,8 @@ export async function updateGame(game : Game): Promise<boolean | undefined> { //
               "id":  game["host-name"]
           }
       };
-      const result = await ddb.updateItem(params).promise()
-      return result;
+      const res = await ddb.updateItem(params).promise()
+      return res;
   } catch (error) {
       console.error(error);
   }
@@ -286,8 +317,8 @@ export async function updateUser(user : User): Promise<boolean | undefined> { //
               "email":  user["email"]
           }
       };
-      const result = await ddb.updateItem(params).promise()
-      return result;
+      const res = await ddb.updateItem(params).promise()
+      return res;
   } catch (error) {
       console.error(error);
   }
@@ -304,8 +335,8 @@ export async function updatePlayer(player : Player): Promise<boolean | undefined
               "assigned-to": player["assigned-to"]
           }
       };
-      const result = await ddb.updateItem(params).promise()
-      return result;
+      const res = await ddb.updateItem(params).promise()
+      return res;
   } catch (error) {
       console.error(error);
   }
@@ -322,8 +353,8 @@ export async function updateAuth(auth : Auth): Promise<boolean | undefined> { //
               "auth-token":  auth["auth-token"]
           }
       };
-      const result = await ddb.updateItem(params).promise()
-      return result;
+      const res = await ddb.updateItem(params).promise()
+      return res;
   } catch (error) {
       console.error(error);
   }
@@ -337,8 +368,8 @@ export async function deleteGame(gameCode: string): Promise<boolean | undefined>
           }, 
           TableName: schema.games.name
       };
-      const result = await ddb.deleteItem(params).promise()
-      return result;
+      const res = await ddb.deleteItem(params).promise()
+      return res;
   } catch (error) {
       console.error(error);
   }
@@ -352,8 +383,8 @@ export async function deleteUser(userID: string): Promise<User | undefined> {
           }, 
           TableName: schema.users.name
       };
-      const result = await ddb.deleteItem(params).promise()
-      return result;
+      const res = await ddb.deleteItem(params).promise()
+      return res;
   } catch (error) {
       console.error(error);
   }
@@ -367,8 +398,8 @@ export async function deletePlayer(playerID: string): Promise<Player | undefined
           }, 
           TableName: schema.players.name
       };
-      const result = await ddb.deleteItem(params).promise()
-      return result;
+      const res = await ddb.deleteItem(params).promise()
+      return res;
   } catch (error) {
       console.error(error);
   }
@@ -382,8 +413,8 @@ export async function deleteAuth(authID: string): Promise<Auth | undefined> {
           }, 
           TableName: schema.auth.name
       };
-      const result = await ddb.deleteItem(params).promise()
-      return result;
+      const res = await ddb.deleteItem(params).promise()
+      return res;
   } catch (error) {
       console.error(error);
   }

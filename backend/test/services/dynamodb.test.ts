@@ -2,9 +2,9 @@ import { describe, it, beforeEach } from 'mocha'
 import { use, expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { AwsStub, mockClient } from 'aws-sdk-client-mock'
-import { DynamoDBClient, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes } from '@aws-sdk/client-dynamodb'
+import { DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes } from '@aws-sdk/client-dynamodb'
 import { marshall } from '@aws-sdk/util-dynamodb';
-import { getUserIdByContactString, login } from '../../src/services/dynamodb'
+import { authenticate, getUserIdByContactString, login } from '../../src/services/dynamodb'
 import sinon from 'sinon'
 import * as modeOfContact from '../../src/model/modeofcontact'
 import * as utils from '../../src/utils/utils'
@@ -83,3 +83,12 @@ describe("dynamodb: login()", () => {
     expect(dynamodbMock.commandCalls(PutItemCommand).length, "put item called once").to.equal(1)
   })
 })
+
+describe("dynamodb: authenticate()", () => {
+  it("Fetches auth entry", async () => {
+    dynamodbMock.on(GetItemCommand).resolves({})
+    await expect(authenticate('123456')).to.eventually.equal('<USER-ID>')
+    expect(dynamodbMock.commandCalls(GetItemCommand).length, "get item called once").to.equal(1)
+  })
+})
+
