@@ -3,13 +3,11 @@
     
 <template>
     <div class="button-div">
-        <!-- changed to create purely for debugging purposes on the create page -->
-        <router-link to="/createExchange" class="button">
+        <router-link to="/login" class="button">
             Create a new Game
         </router-link>
 
-        <!-- changed to join purely for debugging purposes on the join page -->
-        <router-link to="/joinExchange" class="button"> 
+        <router-link to="/login" class="button">
             Join a Game
         </router-link>
 
