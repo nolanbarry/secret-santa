@@ -34,25 +34,25 @@ const invalidPhoneNumbers = [
 // email/phone number validation just needs to be good enough: it shouldn't have ANY 
 // false negatives (a user with a valid email should never have problems), but a few
 // false positives are fine
-describe("getModeOfContact()", () => {
+describe("modeofcontact: getModeOfContact()", () => {
   it("correctly identifies emails", function() {
     for (let validEmail of validEmails) {
-      expect(getModeOfContact(validEmail)).to.equal(ModeOfContact.Email)
+      expect(getModeOfContact(validEmail), `${validEmail} identified as an email`).to.equal(ModeOfContact.Email)
     }
   })
   it("correctly throws out clearly invalid emails", function() {
     for (let invalidEmail of invalidEmails) {
-      expect(getModeOfContact(invalidEmail)).to.equal(ModeOfContact.Invalid)
+      expect(getModeOfContact(invalidEmail), `${invalidEmail} identified as invalid`).to.equal(ModeOfContact.Invalid)
     }
   })
   it("correctly identifies phone numbers", function() {
     for (let validPhoneNumber of validPhoneNumbers) {
-      expect(getModeOfContact(validPhoneNumber)).to.equal(ModeOfContact.PhoneNumber)
+      expect(getModeOfContact(validPhoneNumber), `${validPhoneNumber} identified as phone number`).to.equal(ModeOfContact.PhoneNumber)
     }
   })
   it("correctly throws out clearly invalid phone numbers", function() {
     for (let invalidPhoneNumber of invalidPhoneNumbers) {
-      expect(getModeOfContact(invalidPhoneNumber)).to.equal(ModeOfContact.Invalid)
+      expect(getModeOfContact(invalidPhoneNumber), `${invalidPhoneNumber} identified as invalid`).to.equal(ModeOfContact.Invalid)
     }
   })
 })

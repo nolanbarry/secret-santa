@@ -19,3 +19,4 @@ This project uses [Mocha](https://mochajs.org/) as our testing framework with [C
 
 ### Helpful Documentation
 - [AWS Javascript SDK Documentation](https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/#getting-started)
+- [AWS SDK Client Mock Library](https://github.com/m-radzikowski/aws-sdk-client-mock)

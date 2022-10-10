@@ -12,7 +12,8 @@ type TableReference = keyof Tables
 
 type TableConfigurationProps = {
   partitionKey: string,
-  sortKey?: string
+  sortKey?: string,
+  ttlKey?: string,
   globalIndexes?: {
     name: string,
     partitionKey: string,
@@ -38,6 +39,7 @@ const tableConfigProps: { [Property in TableReference]: TableConfigurationProps 
   auth: {
     partitionKey: 'id',
     sortKey: 'otp',
+    ttlKey: 'expiration-date',
     globalIndexes: [
       { name: 'by-auth-token', partitionKey: 'auth-token' }
     ]
@@ -49,6 +51,7 @@ class TableSchema {
   cdkID: string
   partitionKey: string
   sortKey?: string
+  ttlKey?: string
   globalIndexes: {
     name: string
     partitionKey: string,
@@ -61,6 +64,7 @@ class TableSchema {
     this.globalIndexes = props.globalIndexes ?? []
     this.partitionKey = props.partitionKey
     this.sortKey = props.sortKey
+    this.ttlKey = props.ttlKey
   }
 }
 
@@ -85,14 +89,18 @@ export function createTables(scope: SecretSantaStack): Tables {
   for (const tableReference of Object.keys(tableConfigurations) as TableReference[]) {
     const config = tableConfigurations[tableReference]
 
+    const ttl: { timeToLiveAttribute?: string } = {}
+    if (config.ttlKey) ttl.timeToLiveAttribute = config.ttlKey
+
     const sortKey: { sortKey?: Attribute } = {}
     if (config.sortKey) sortKey.sortKey = { name: config.sortKey, type: AttributeType.STRING }
 
     // create table
     tables[tableReference] = new Table(scope, config.cdkID, {
+      tableName: config.name,
       partitionKey: { name: config.partitionKey, type: AttributeType.STRING },
       ...sortKey,
-      tableName: config.name,
+      ...ttl
     })
 
     // add indexes
@@ -102,7 +110,7 @@ export function createTables(scope: SecretSantaStack): Tables {
       tables[tableReference].addGlobalSecondaryIndex({
         indexName: globalIndex.name,
         partitionKey: { name: globalIndex.partitionKey, type: AttributeType.STRING },
-        ...sortKey
+        ...sortKey,
       })
     }
   }
