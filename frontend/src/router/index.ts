@@ -21,13 +21,15 @@ const router = createRouter({
       component: () => import('../views/LoginView.vue')
     },
     {
-      path: '/create',
-      name: 'create',
-      component: () => import('../views/CreateGameView.vue'),
-      meta: {
-        requiresAuth: true
-      }
+      path: '/joinExchange',
+      name: 'joinExchange',
+      component: () => import('../views/JoinExchangeView.vue')
     },
+    {
+      path: '/createExchange',
+      name: 'createExchange',
+      component: () => import('../views/CreateExchangeView.vue')
+    }
   ]
 })
 
