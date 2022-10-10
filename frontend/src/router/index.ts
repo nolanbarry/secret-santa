@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 
 import '@/assets/scss/main.scss';
+import AuthService from '@/services/AuthService';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -30,6 +31,22 @@ const router = createRouter({
       component: () => import('../views/CreateExchangeView.vue')
     }
   ]
+})
+
+router.beforeEach((to, from, next) => {
+
+  if (to.matched.some(record => record.meta.requiresAuth)) {
+    // this route requires auth, check if logged in
+    // if not, redirect to login page.
+    if (!AuthService.getAuth()) {
+      sessionStorage.setItem('redirectPath', to.path);
+      next({ name: 'login' })
+    } else {
+      next() // go to wherever I'm going
+    }
+  } else {
+    next() // does not require auth, make sure to always call next()!
+  }
 })
 
 export default router
