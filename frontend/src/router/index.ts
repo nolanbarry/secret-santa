@@ -23,11 +23,17 @@ const router = createRouter({
     {
       path: '/joinExchange',
       name: 'joinExchange',
+      meta: {
+        requiresAuth: true
+      },
       component: () => import('../views/JoinExchangeView.vue')
     },
     {
       path: '/createExchange',
       name: 'createExchange',
+      meta: {
+        requiresAuth: true
+      },
       component: () => import('../views/CreateExchangeView.vue')
     }
   ]
