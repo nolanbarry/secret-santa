@@ -6,10 +6,7 @@ import { getModeOfContact, ModeOfContact } from "../model/modeofcontact";
 import constants from "../utils/constants";
 import { generateRandomString, generateUserId } from "../utils/utils";
 
-var AWS = require("aws-sdk");
-
 const ddb = new DynamoDB({region: constants.region})
-const documentClient = new AWS.DynamoDB.DocumentClient();
 const schema = constants.tables
 
 /**
@@ -88,7 +85,7 @@ export async function login(userId: string) {
  * but we can add that later if needs be.
  * 
  * @param authToken The authToken to authenticate.`
- * @returns The userID, a unique random string to identify the user. 
+ * @returns The userId, a unique random string to identify the user. 
  */
  export async function authenticate(authToken: string) {
   
@@ -105,25 +102,29 @@ export async function login(userId: string) {
  * TODO: We should add/update some kind of lastUsed property in this function, 
  * but we can add that later if needs be.
  * 
- * @param userID The userID that belongs to the user we're retrieving players for.`
+ * @param userId The userId that belongs to the user we're retrieving players for.`
  * @returns An array of the players that are stored under a single user's id
  */
- export async function getPlayersForUser(userID: string) {
+ export async function getPlayersForUser(userId: string) {
   
-  try {
     const params = {
-        KeyConditionExpression: 'id = :id',
-        ExpressionAttributeValues: {
-            ':id': userID
-        },
+        KeyConditionExpression: '#id = :id',
+        ExpressionAttributeValues: marshall({
+            ':id': userId
+        }),
+        ExpressionAttributeNames: {
+          '#id': schema.players.schema.id
+      },
         TableName: schema.players.name
     };
-    const res = await documentClient.query(params).promise()
-    let players = unmarshall(res?.Item) as Player[];
+    const res = await ddb.query(params)
+    let players : Player[] = [];
+    res.Items?.forEach (function(item) {
+      players.push(unmarshall(item) as Player);
+    })
+
     return players;
-  } catch (error) {
-      console.error(error);
-  }
+
 }
 
 
@@ -131,76 +132,86 @@ export async function login(userId: string) {
 
 //gets (single item)
 
-export async function getGame(gameCode: string): Promise<Game | undefined> {
+export async function getGame(gameCode: string): Promise<Game | null> {
 
-    const params = {
+    const params = 
+      {
         Key: {
-          "id": {"S": gameCode}, 
+          "gameCode": {"S": gameCode}, 
         }, 
         TableName: schema.games.name
-    };
+      };
     const res = await ddb.getItem(params)
-    return unmarshall(res.Item!) as Game;
+    if (res?.Item) {
+      return unmarshall(res.Item!) as Game;
+    }
+    else return null;
 
 }
 
-export async function getUser(userID: string): Promise<User | undefined> {
+export async function getUser(userId: string): Promise<User | null> {
 
     const params = {
         Key: {
-          "code": {"S": userID}, 
+          "code": {"S": userId}, 
         }, 
         TableName: schema.users.name
     };
     const res = await ddb.getItem(params)
-    return unmarshall(res.Item!) as User;
+    if (res?.Item) {
+      return unmarshall(res.Item!) as User;
+    }
+    else return null;
 
 }
 
-export async function getPlayer(playerID: string): Promise<Player | undefined> {
+export async function getPlayer(playerId: string): Promise<Player | null> {
 
     const params = {
         Key: {
-          "id": {"S": playerID}, 
+          "id": {"S": playerId}, 
         }, 
         TableName: schema.players.name
     };
     const res = await ddb.getItem(params)
-    return unmarshall(res.Item!) as Player;
+    if (res?.Item) {
+      return unmarshall(res.Item!) as Player;
+    }
+    else return null;
 
 }
 
-export async function getAuth(authID: string): Promise<Auth | undefined> {
+export async function getAuth(authId: string): Promise<Auth | null> {
 
     const params = {
         Key: {
-          "id": {"S": authID}, 
+          "id": {"S": authId}, 
         }, 
         TableName: schema.auth.name
     };
     const res = await ddb.getItem(params)
-    if (res) {
+    if (res?.Item) {
       return unmarshall(res.Item!) as Auth;
     }
-    else return undefined;
+    else return null;
 
 }
 
 //gets (batch)
 
-export async function getPlayersForGame(gameCode: string): Promise<Player[] | undefined> {
+// export async function getPlayersForGame(gameCode: string): Promise<Player[] | null> {
 
-    const params = {
-        KeyConditionExpression: 'gameCode = :game-code',
-        ExpressionAttributeValues: {
-            ':game-code': gameCode
-        },
-        TableName: schema.players.name
-    };
-    const res = await documentClient.query(params)
-    return unmarshall(res.Item!) as Player[];
+//     const params = {
+//         KeyConditionExpression: 'gameCode = :game-code',
+//         ExpressionAttributeValues: {
+//             ':game-code': gameCode
+//         },
+//         TableName: schema.players.name
+//     };
+//     const res = await ddb.query(params)
+//     return unmarshall(res.Item!) as Player[];
 
-}
+// }
 
 //puts (single item)
 
@@ -273,11 +284,11 @@ export async function deleteGame(gameCode: string): Promise<void> {
   
 }
 
-export async function deleteUser(userID: string): Promise<void> {
+export async function deleteUser(userId: string): Promise<void> {
 
   const params = {
       Key: {
-        "code": {"S": userID}, 
+        "code": {"S": userId}, 
       }, 
       TableName: schema.users.name
   };
@@ -285,11 +296,11 @@ export async function deleteUser(userID: string): Promise<void> {
 
 }
 
-export async function deletePlayer(playerID: string): Promise<void> {
+export async function deletePlayer(playerId: string): Promise<void> {
 
   const params = {
       Key: {
-        "id": {"S": playerID}, 
+        "id": {"S": playerId}, 
       }, 
       TableName: schema.players.name
   };
@@ -297,11 +308,11 @@ export async function deletePlayer(playerID: string): Promise<void> {
 
 }
 
-export async function deleteAuth(authID: string): Promise<void> {
+export async function deleteAuth(authId: string): Promise<void> {
 
   const params = {
       Key: {
-        "id": {"S": authID}, 
+        "id": {"S": authId}, 
       }, 
       TableName: schema.auth.name
   };
