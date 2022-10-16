@@ -2,15 +2,14 @@ import { describe, it, beforeEach } from 'mocha'
 import { use, expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { AwsStub, mockClient } from 'aws-sdk-client-mock'
-import { DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
+import { DynamoDBClient, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
 import { marshall } from '@aws-sdk/util-dynamodb';
-import { authenticate, getUserIdByContactString, login, putAuth } from '../../src/services/dynamodb'
+import { authenticate, getUserIdByContactString, login } from '../../src/services/dynamodb'
 import sinon from 'sinon'
 import * as modeOfContact from '../../src/model/modeofcontact'
 import * as utils from '../../src/utils/utils'
 import constants from '../../src/utils/constants'
 import { HTTPError } from '../../src/model/error'
-import { Auth } from '../../src/model/dao-interfaces'
 
 /*
  * Helpful Documentation:
