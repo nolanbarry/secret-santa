@@ -135,197 +135,121 @@ export async function getPlayersForUser(userId: string) {
   })
 
   return players;
-
 }
-
 
 /* HELPER FUNCTIONS */
 
 /* GETTERS */
 
-/** Retrieve a game by its gameCode. Returns `null` if no game exists with that game code. */
-export async function getGame(gameCode: string): Promise<Game | null> {
-  const params = {
-    Key: marshall({
-      [schema.games.partitionKey]: gameCode,
-    }),
-    TableName: schema.games.name
-  };
-  const response = await ddb.getItem(params)
-  return response.Item ? unmarshall(response.Item!) as Game : null;
+type TableSchema = {
+  name: string
+  partitionKey: string
+  sortKey?: string
 }
+
+/**
+ * Retrieves an item from given table.
+ * @param tableSchema A table schema object containing the table name, partition key, and sort key.
+ * @param partitionKeyValue The value of the partition key of the item being retrieved.
+ * @param sortKeyValue The value of the sort key, optional.
+ * @returns A promise for the table entry, if it exists, or null.
+ */
+async function getter<TableEntryType>(tableSchema: TableSchema, partitionKeyValue: string, sortKeyValue?: string): Promise<TableEntryType | null> {
+  const response = await ddb.getItem({
+    TableName: tableSchema.name,
+    Key: marshall({
+      [tableSchema.partitionKey]: partitionKeyValue,
+      ...(sortKeyValue && { [tableSchema.sortKey!]: sortKeyValue }) // only add the sort key if it is given
+    })
+  })
+
+  return response.Item ? unmarshall(response.Item!) as TableEntryType : null
+}
+
+/**
+ * Retrieve the item from the table by its partition/sort key in an index.
+ * @param tableName The name of the table to retrieve from.
+ * @param indexSchema The schema of the index, including its name, partition key name, and sort key name.
+ * @param partitionKeyValue The value of the partition key.
+ * @param sortKeyValue The value of sort key, optional.
+ * @returns A promise for the table entry, if it exists, or null.
+ */
+async function indexGetter<TableEntryType>(tableName: string, indexSchema: TableSchema, partitionKeyValue: string, sortKeyValue?: string): Promise<TableEntryType | null> {
+  const response = await ddb.query({
+    TableName: tableName,
+    IndexName: indexSchema.name,
+    KeyConditionExpression: "#key = :value" + (sortKeyValue ? " AND #sortKey = :sortValue" : ""),
+    ExpressionAttributeNames: {
+      '#key': indexSchema.partitionKey,
+      ...(sortKeyValue && { '#sortKey': indexSchema.sortKey })
+    },
+    ExpressionAttributeValues: marshall({
+      ':value': partitionKeyValue,
+      ...(sortKeyValue && { ':sortValue': sortKeyValue })
+    })
+  })
+  return response.Items?.length ? unmarshall(response.Items![0]) as TableEntryType : null
+}
+
+/** Retrieve a game by its gameCode. Returns `null` if no game exists with that game code. */
+const getGame = (gameCode: string) => getter<Game>(schema.games, gameCode)
 
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
-export async function getUser(userId: string): Promise<User | null> {
-  const params = {
-    Key: marshall({
-      [schema.users.partitionKey]: userId,
-    }),
-    TableName: schema.users.name
-  };
-  const response = await ddb.getItem(params)
-  return response.Item ? unmarshall(response.Item!) as User : null;
-}
+const getUser = (userId: string) => getter<User>(schema.users, userId)
+/** Retrieve a user by their id. Returns `null` if no user exists with that id. */
+const getUserByPhoneNumber = (phoneNumber: string) => indexGetter<User>(schema.users.name, schema.users.indexes.byPhoneNumber, phoneNumber)
+/** Retrieve a user by their id. Returns `null` if no user exists with that id. */
+const getUserByEmail = (email: string) => indexGetter<User>(schema.users.name, schema.users.indexes.byEmail, email)
 
 /** Retrieves a player by game code and display name. Returns `null` if the player does not exist in the game */
-export async function getPlayer(displayName: string, gameCode: string): Promise<Player | null> {
-  const params = {
-    Key: marshall({
-      [schema.players.partitionKey]: gameCode,
-      [schema.players.sortKey]: displayName
-    }),
-    TableName: schema.players.name
-  };
-  const response = await ddb.getItem(params)
-  return response.Item ? unmarshall(response.Item!) as Player : null;
-}
+const getPlayer = (gameCode: string, displayName: string) => getter<Player>(schema.players, gameCode, displayName)
 
 /** Retrieves an auth table entry by user id and OTP. Returns `null` if OTP isn't valid for given player. */
-export async function getAuth(userId: string, otp: string): Promise<Auth | null> {
-  const params = {
-    Key: marshall({
-      [schema.auth.partitionKey]: userId,
-      [schema.auth.sortKey]: otp
-    }),
-    TableName: schema.auth.name
-  };
-  const response = await ddb.getItem(params)
-  return response.Item ? unmarshall(response.Item!) as Auth : null;
-}
-
+const getAuth = (userId: string, otp: string) => getter<Auth>(schema.auth, userId, otp)
 /** Retrieves an auth table entry by auth token. Returns `null` if the auth token isn't valid. */
-export async function getAuthByAuthToken(authToken: string): Promise<Auth | null> {
-  // this particular query should only ever return 1 or 0 items auth tokens are unique
-  const response = await ddb.query({
-    KeyConditionExpression: '#token = :token',
-    ExpressionAttributeNames: { '#token': schema.auth.indexes.byAuthToken.partitionKey },
-    ExpressionAttributeValues: marshall({ ':token': authToken }),
-    IndexName: schema.auth.indexes.byAuthToken.name,
-    TableName: schema.auth.name
+const getAuthByAuthToken = (authToken: string) => indexGetter<Auth>(schema.auth.name, schema.auth.indexes.byAuthToken, authToken)
+
+/* SETTERS */
+
+/**
+ * Puts a table record into the given table
+ * @param tableSchema The schema of the table. This function only uses the name.
+ * @param entry The table entry, which will be marshalled automatically.
+ */
+async function putter<TableEntryType>(tableSchema: TableSchema, entry: TableEntryType): Promise<void> {
+  await ddb.putItem({
+    TableName: tableSchema.name,
+    Item: marshall(entry)
   })
-  // if Items is undefined OR Items.length is 0, response.Items?.length will evaluate to false
-  return response.Items?.length ? unmarshall(response.Items![0]) as Auth : null
 }
 
-//gets (batch)
+/** Puts a game entry into the Games table */
+const putGame = (game: Game) => putter(schema.games, game)
+/** Puts a user entry into the Users table */
+const putUser = (user: User) => putter(schema.users, user)
+/** Puts a player entry into the Players table */
+const putPlayer = (player: Player) => putter(schema.players, player)
+/** Puts an auth entry into the Auth table */
+const putAuth = (auth: Auth) => putter(schema.auth, auth)
 
-// export async function getPlayersForGame(gameCode: string): Promise<Player[] | null> {
 
-//     const params = {
-//         KeyConditionExpression: 'gameCode = :game-code',
-//         ExpressionAttributeValues: {
-//             ':game-code': gameCode
-//         },
-//         TableName: schema.players.name
-//     };
-//     const res = await ddb.query(params)
-//     return unmarshall(res.Item!) as Player[];
+/* DELETERS */
 
-// }
-
-//puts (single item)
-
-export async function putGame(game: Game): Promise<void> {
-
-  await ddb.putItem({
-    TableName: schema.games.name,
-    Item: marshall({
-      "code": game["code"],
-      "display-name": game["display-name"],
-      "host-name": game["host-name"]
+async function deleter(tableSchema: TableSchema, partitionKeyValue: string, sortKeyValue?: string): Promise<void> {
+  await ddb.deleteItem({
+    TableName: tableSchema.name,
+    Key: marshall({
+      [tableSchema.partitionKey]: partitionKeyValue,
+      ...(sortKeyValue && { [tableSchema.sortKey!]: sortKeyValue })
     })
   })
 }
 
-export async function putUser(user: User): Promise<void> {
-
-  await ddb.putItem({
-    TableName: schema.users.name,
-    Item: marshall({
-      "id": user["id"],
-      "phone-number": user["phone-number"],
-      "email": user["email"]
-    })
-  })
-
-}
-
-export async function putPlayer(player: Player): Promise<void> {
-
-  await ddb.putItem({
-    TableName: schema.users.name,
-    Item: marshall({
-      "id": player["id"],
-      "display-name": player["display-name"],
-      "game-code": player["game-code"],
-      "assigned-to": player["assigned-to"]
-    })
-  })
-}
-
-
-export async function putAuth(auth: Auth): Promise<void> {
-  await ddb.putItem({
-    TableName: schema.users.name,
-    Item: marshall({
-      "id": auth["id"],
-      "otp": auth["otp"],
-      "auth-token": auth["auth-token"]
-    })
-  })
-
-}
-
-// updates (single item) TODO: do we want to implement these? Or would using only "put" be simpler?
-// put replaces an item while update only updates the fields
-
-
-//delete (single item)
-
-export async function deleteGame(gameCode: string): Promise<void> {
-
-  const params = {
-    Key: {
-      "id": { "S": gameCode },
-    },
-    TableName: schema.games.name
-  };
-  await ddb.deleteItem(params)
-
-}
-
-export async function deleteUser(userId: string): Promise<void> {
-
-  const params = {
-    Key: {
-      "code": { "S": userId },
-    },
-    TableName: schema.users.name
-  };
-  await ddb.deleteItem(params)
-
-}
-
-export async function deletePlayer(playerId: string): Promise<void> {
-
-  const params = {
-    Key: {
-      "id": { "S": playerId },
-    },
-    TableName: schema.players.name
-  };
-  await ddb.deleteItem(params)
-
-}
-
-export async function deleteAuth(authId: string): Promise<void> {
-
-  const params = {
-    Key: {
-      "id": { "S": authId },
-    },
-    TableName: schema.auth.name
-  };
-  await ddb.deleteItem(params)
-
-}
+/** Removes a game from the Games table */
+const deleteGame = (gameCode: string) => deleter(schema.games, gameCode)
+/** Removes a user from the Users table */
+const deleteUser = (userId: string) => deleter(schema.users, userId)
+/** Removes a player from the Players table */
+const deletePlayer = (gameCode: string, displayName: string) => deleter(schema.players, gameCode, displayName)
+/** Removes an auth entry from the auth table */
+const deleteAuth = (userId: string, otp: string) => deleter(schema.auth, userId, otp)
