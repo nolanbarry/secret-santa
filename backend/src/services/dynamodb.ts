@@ -6,7 +6,7 @@ import { getModeOfContact, ModeOfContact } from "../model/modeofcontact";
 import constants from "../utils/constants";
 import { generateRandomString, generateUserId } from "../utils/utils";
 
-const ddb = new DynamoDB({region: constants.region})
+const ddb = new DynamoDB({ region: constants.region })
 const schema = constants.tables
 
 /**
@@ -35,7 +35,7 @@ export async function getUserIdByContactString(contactString: string) {
       '#key': index.partitionKey
     },
     ExpressionAttributeValues: {
-      ':value': {S: contactString}
+      ':value': { S: contactString }
     }
   })
   let id: string;
@@ -63,6 +63,7 @@ export async function getUserIdByContactString(contactString: string) {
  */
 export async function login(userId: string) {
   let otp = generateRandomString("1234567890", constants.otpLength)
+  let expirationDate = Date.now() / 1000 + schema.auth.otpTTL
   // TODO: Impose a limit on the number of auth table entries a user
   // can have, replace the oldest one if the limit has been reached.
   await ddb.putItem({
@@ -70,7 +71,7 @@ export async function login(userId: string) {
     Item: marshall({
       [schema.auth.partitionKey]: userId,
       [schema.auth.schema.otp]: otp,
-      [schema.auth.ttlKey]: Date.now() / 1000 + schema.auth.otpTTL
+      [schema.auth.ttlKey]: expirationDate.toString()
     })
   })
   return otp
@@ -81,16 +82,26 @@ export async function login(userId: string) {
  * Retrieves (if possible) auth token from the auth table, then returns the associated user id. 
  * Returns null if the auth token doesn't exist. 
  * 
- * TODO: We should add/update some kind of lastUsed property in this function, 
- * but we can add that later if needs be.
- * 
- * @param authToken The authToken to authenticate.`
+ * @param authToken The authToken to authenticate.
  * @returns The userId, a unique random string to identify the user. 
  */
- export async function authenticate(authToken: string) {
-  
-  let auth = await getAuth(authToken);
-  return auth?.id
+export async function authenticate(authToken: string) {
+  let auth = await getAuthByAuthToken(authToken);
+  if (!auth) return null
+
+  // update expiration date of auth token
+  let newExpirationDate = Date.now() / 1000 + schema.auth.authTokenTTL
+  ddb.updateItem({
+    TableName: schema.auth.name,
+    Key: marshall({
+      [schema.auth.partitionKey]: auth[schema.auth.partitionKey as keyof Auth]!,
+      [schema.auth.sortKey]: auth[schema.auth.sortKey as keyof Auth]!
+    }),
+    UpdateExpression: "#ttl = :new-expiration",
+    ExpressionAttributeNames: { '#ttl': schema.auth.ttlKey },
+    ExpressionAttributeValues: marshall({ ':new-expiration': newExpirationDate.toString() })
+  })
+  return auth.id
 }
 
 /**
@@ -105,96 +116,95 @@ export async function login(userId: string) {
  * @param userId The userId that belongs to the user we're retrieving players for.`
  * @returns An array of the players that are stored under a single user's id
  */
- export async function getPlayersForUser(userId: string) {
-  
-    const params = {
-        KeyConditionExpression: '#id = :id',
-        ExpressionAttributeValues: marshall({
-            ':id': userId
-        }),
-        ExpressionAttributeNames: {
-          '#id': schema.players.schema.id
-      },
-        TableName: schema.players.name
-    };
-    const res = await ddb.query(params)
-    let players : Player[] = [];
-    res.Items?.forEach (function(item) {
-      players.push(unmarshall(item) as Player);
-    })
+export async function getPlayersForUser(userId: string) {
 
-    return players;
+  const params = {
+    KeyConditionExpression: '#id = :id',
+    ExpressionAttributeValues: marshall({
+      ':id': userId
+    }),
+    ExpressionAttributeNames: {
+      '#id': schema.players.schema.id
+    },
+    TableName: schema.players.name
+  };
+  const res = await ddb.query(params)
+  let players: Player[] = [];
+  res.Items?.forEach(function (item) {
+    players.push(unmarshall(item) as Player);
+  })
+
+  return players;
 
 }
 
 
-//HELPER FUNCTIONS
+/* HELPER FUNCTIONS */
 
-//gets (single item)
+/* GETTERS */
 
+/** Retrieve a game by its gameCode. Returns `null` if no game exists with that game code. */
 export async function getGame(gameCode: string): Promise<Game | null> {
-
-    const params = 
-      {
-        Key: {
-          "gameCode": {"S": gameCode}, 
-        }, 
-        TableName: schema.games.name
-      };
-    const res = await ddb.getItem(params)
-    if (res?.Item) {
-      return unmarshall(res.Item!) as Game;
-    }
-    else return null;
-
+  const params = {
+    Key: marshall({
+      [schema.games.partitionKey]: gameCode,
+    }),
+    TableName: schema.games.name
+  };
+  const response = await ddb.getItem(params)
+  return response.Item ? unmarshall(response.Item!) as Game : null;
 }
 
+/** Retrieve a user by their id. Returns `null` if no user exists with that id. */
 export async function getUser(userId: string): Promise<User | null> {
-
-    const params = {
-        Key: {
-          "code": {"S": userId}, 
-        }, 
-        TableName: schema.users.name
-    };
-    const res = await ddb.getItem(params)
-    if (res?.Item) {
-      return unmarshall(res.Item!) as User;
-    }
-    else return null;
-
+  const params = {
+    Key: marshall({
+      [schema.users.partitionKey]: userId,
+    }),
+    TableName: schema.users.name
+  };
+  const response = await ddb.getItem(params)
+  return response.Item ? unmarshall(response.Item!) as User : null;
 }
 
-export async function getPlayer(playerId: string): Promise<Player | null> {
-
-    const params = {
-        Key: {
-          "id": {"S": playerId}, 
-        }, 
-        TableName: schema.players.name
-    };
-    const res = await ddb.getItem(params)
-    if (res?.Item) {
-      return unmarshall(res.Item!) as Player;
-    }
-    else return null;
-
+/** Retrieves a player by game code and display name. Returns `null` if the player does not exist in the game */
+export async function getPlayer(displayName: string, gameCode: string): Promise<Player | null> {
+  const params = {
+    Key: marshall({
+      [schema.players.partitionKey]: gameCode,
+      [schema.players.sortKey]: displayName
+    }),
+    TableName: schema.players.name
+  };
+  const response = await ddb.getItem(params)
+  return response.Item ? unmarshall(response.Item!) as Player : null;
 }
 
-export async function getAuth(authId: string): Promise<Auth | null> {
+/** Retrieves an auth table entry by user id and OTP. Returns `null` if OTP isn't valid for given player. */
+export async function getAuth(userId: string, otp: string): Promise<Auth | null> {
+  const params = {
+    Key: marshall({
+      [schema.auth.partitionKey]: userId,
+      [schema.auth.sortKey]: otp
+    }),
+    TableName: schema.auth.name
+  };
+  const response = await ddb.getItem(params)
+  return response.Item ? unmarshall(response.Item!) as Auth : null;
+}
 
-    const params = {
-        Key: {
-          "id": {"S": authId}, 
-        }, 
-        TableName: schema.auth.name
-    };
-    const res = await ddb.getItem(params)
-    if (res?.Item) {
-      return unmarshall(res.Item!) as Auth;
-    }
-    else return null;
-
+/** Retrieves an auth table entry by auth token. Returns `null` if the auth token isn't valid. */
+export async function getAuthByAuthToken(authToken: string): Promise<Auth | null> {
+  // this particular query should only ever return 1 or 0 items auth tokens are unique
+  const response = await ddb.query({
+    KeyConditionExpression: '#token = :token',
+    ExpressionAttributeNames: { '#token': schema.auth.indexes.byAuthToken.partitionKey },
+    ExpressionAttributeValues: marshall({ ':token': authToken }),
+    IndexName: schema.auth.indexes.byAuthToken.name,
+    TableName: schema.auth.name
+  })
+  // if Items is undefined OR Items.length is 0, response.Items?.length will evaluate to false
+  return response.Items?.length ? unmarshall(response.Items![0]) as Auth : null
 }
 
 //gets (batch)
@@ -215,8 +225,8 @@ export async function getAuth(authId: string): Promise<Auth | null> {
 
 //puts (single item)
 
-export async function putGame(game : Game): Promise<void> { 
-  
+export async function putGame(game: Game): Promise<void> {
+
   await ddb.putItem({
     TableName: schema.games.name,
     Item: marshall({
@@ -227,43 +237,43 @@ export async function putGame(game : Game): Promise<void> {
   })
 }
 
-export async function putUser(user : User): Promise<void> { 
-  
+export async function putUser(user: User): Promise<void> {
+
   await ddb.putItem({
     TableName: schema.users.name,
     Item: marshall({
       "id": user["id"],
       "phone-number": user["phone-number"],
-      "email":  user["email"]
+      "email": user["email"]
     })
   })
-  
+
 }
 
-export async function putPlayer(player : Player): Promise<void> { 
+export async function putPlayer(player: Player): Promise<void> {
 
   await ddb.putItem({
     TableName: schema.users.name,
     Item: marshall({
       "id": player["id"],
       "display-name": player["display-name"],
-      "game-code":  player["game-code"],
+      "game-code": player["game-code"],
       "assigned-to": player["assigned-to"]
     })
   })
 }
 
 
-export async function putAuth(auth : Auth): Promise<void> { 
+export async function putAuth(auth: Auth): Promise<void> {
   await ddb.putItem({
     TableName: schema.users.name,
     Item: marshall({
       "id": auth["id"],
       "otp": auth["otp"],
-      "auth-token":  auth["auth-token"]
+      "auth-token": auth["auth-token"]
     })
   })
-  
+
 }
 
 // updates (single item) TODO: do we want to implement these? Or would using only "put" be simpler?
@@ -275,22 +285,22 @@ export async function putAuth(auth : Auth): Promise<void> {
 export async function deleteGame(gameCode: string): Promise<void> {
 
   const params = {
-      Key: {
-        "id": {"S": gameCode}, 
-      }, 
-      TableName: schema.games.name
+    Key: {
+      "id": { "S": gameCode },
+    },
+    TableName: schema.games.name
   };
   await ddb.deleteItem(params)
-  
+
 }
 
 export async function deleteUser(userId: string): Promise<void> {
 
   const params = {
-      Key: {
-        "code": {"S": userId}, 
-      }, 
-      TableName: schema.users.name
+    Key: {
+      "code": { "S": userId },
+    },
+    TableName: schema.users.name
   };
   await ddb.deleteItem(params)
 
@@ -299,10 +309,10 @@ export async function deleteUser(userId: string): Promise<void> {
 export async function deletePlayer(playerId: string): Promise<void> {
 
   const params = {
-      Key: {
-        "id": {"S": playerId}, 
-      }, 
-      TableName: schema.players.name
+    Key: {
+      "id": { "S": playerId },
+    },
+    TableName: schema.players.name
   };
   await ddb.deleteItem(params)
 
@@ -311,10 +321,10 @@ export async function deletePlayer(playerId: string): Promise<void> {
 export async function deleteAuth(authId: string): Promise<void> {
 
   const params = {
-      Key: {
-        "id": {"S": authId}, 
-      }, 
-      TableName: schema.auth.name
+    Key: {
+      "id": { "S": authId },
+    },
+    TableName: schema.auth.name
   };
   await ddb.deleteItem(params)
 

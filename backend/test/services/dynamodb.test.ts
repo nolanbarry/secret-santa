@@ -2,7 +2,7 @@ import { describe, it, beforeEach } from 'mocha'
 import { use, expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { AwsStub, mockClient } from 'aws-sdk-client-mock'
-import { DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes } from '@aws-sdk/client-dynamodb'
+import { DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
 import { marshall } from '@aws-sdk/util-dynamodb';
 import { authenticate, getUserIdByContactString, login, putAuth } from '../../src/services/dynamodb'
 import sinon from 'sinon'
@@ -86,16 +86,12 @@ describe("dynamodb: login()", () => {
 })
 
 describe("dynamodb: authenticate()", () => {
-  it("Fetches auth entry", async () => {
-    let testAuth : Auth = {
-      id: "testID",
-      otp: "123456",
-      "auth-token": "testAuthToken"
-    };
-    // await putAuth(testAuth);
+  it("Returns null when auth token doesn't exist", async () => {
+    dynamodbMock.on(QueryCommand).resolves({Items: []})
+    dynamodbMock.on(UpdateItemCommand).rejects("Should not update expiration date on non-existent token") // shouldn't call updateItem
 
-    await expect(authenticate(testAuth['auth-token']!)).to.eventually.equal(undefined)
-    expect(dynamodbMock.commandCalls(GetItemCommand).length, "get item called once").to.equal(1)
+    await expect(authenticate('an auth token')).to.eventually.equal(null)
+    expect(dynamodbMock.commandCalls(QueryCommand).length, "query called once").to.equal(1)
   })
 })
 

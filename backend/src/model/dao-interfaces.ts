@@ -1,4 +1,3 @@
-
 export interface Game {
     code: string
     "display-name": string
@@ -22,4 +21,5 @@ export interface Auth {
     id: string
     otp: string
     "auth-token"?: string
+    "expiration-date": string
 }
