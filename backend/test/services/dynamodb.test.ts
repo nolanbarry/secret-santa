@@ -85,18 +85,17 @@ describe("dynamodb: login()", () => {
   })
 })
 
-// describe("dynamodb: authenticate()", () => {
-//   it("Fetches auth entry", async () => {
-//     let testAuth : Auth = {
-//       id: "testID",
-//       otp: "123456",
-//       "auth-token": "testAuthToken"
-//     };
-//     await putAuth(testAuth);
+describe("dynamodb: authenticate()", () => {
+  it("Fetches auth entry", async () => {
+    let testAuth : Auth = {
+      id: "testID",
+      otp: "123456",
+      "auth-token": "testAuthToken"
+    };
+    // await putAuth(testAuth);
 
-//     dynamodbMock.on(GetItemCommand).resolves({})
-//     await expect(authenticate(testAuth['auth-token']!)).to.eventually.equal(testAuth.id)
-//     expect(dynamodbMock.commandCalls(GetItemCommand).length, "get item called once").to.equal(1)
-//   })
-// })
+    await expect(authenticate(testAuth['auth-token']!)).to.eventually.equal(undefined)
+    expect(dynamodbMock.commandCalls(GetItemCommand).length, "get item called once").to.equal(1)
+  })
+})
 
