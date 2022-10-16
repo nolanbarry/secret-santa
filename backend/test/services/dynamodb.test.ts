@@ -88,10 +88,10 @@ describe("dynamodb: login()", () => {
 describe("dynamodb: authenticate()", () => {
   it("Returns null when auth token doesn't exist", async () => {
     dynamodbMock.on(QueryCommand).resolves({Items: []})
-    dynamodbMock.on(UpdateItemCommand).rejects("Should not update expiration date on non-existent token") // shouldn't call updateItem
 
     await expect(authenticate('an auth token')).to.eventually.equal(null)
     expect(dynamodbMock.commandCalls(QueryCommand).length, "query called once").to.equal(1)
+    expect(dynamodbMock.commandCalls(UpdateItemCommand).length, "update item not called").to.equal(0)
   })
 })
 
