@@ -2,9 +2,9 @@ import { describe, it, beforeEach } from 'mocha'
 import { use, expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import { AwsStub, mockClient } from 'aws-sdk-client-mock'
-import { DynamoDBClient, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes } from '@aws-sdk/client-dynamodb'
+import { DynamoDBClient, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
 import { marshall } from '@aws-sdk/util-dynamodb';
-import { getUserIdByContactString, login } from '../../src/services/dynamodb'
+import { authenticate, getUserIdByContactString, login } from '../../src/services/dynamodb'
 import sinon from 'sinon'
 import * as modeOfContact from '../../src/model/modeofcontact'
 import * as utils from '../../src/utils/utils'
@@ -83,3 +83,14 @@ describe("dynamodb: login()", () => {
     expect(dynamodbMock.commandCalls(PutItemCommand).length, "put item called once").to.equal(1)
   })
 })
+
+describe("dynamodb: authenticate()", () => {
+  it("Returns null when auth token doesn't exist", async () => {
+    dynamodbMock.on(QueryCommand).resolves({Items: []})
+
+    await expect(authenticate('an auth token')).to.eventually.equal(null)
+    expect(dynamodbMock.commandCalls(QueryCommand).length, "query called once").to.equal(1)
+    expect(dynamodbMock.commandCalls(UpdateItemCommand).length, "update item not called").to.equal(0)
+  })
+})
+

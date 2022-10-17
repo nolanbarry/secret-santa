@@ -43,11 +43,22 @@ const tables = {
   players: {
     name: process.env["PLAYERS_TABLE_NAME"] ?? "players table",
     partitionKey: process.env["PLAYERS_TABLE_PARTITION_KEY"] ?? "players table partition key",
-    sortKey: process.env["PLAYERS_TABLE_SORT_KEY"] ?? ""
+    sortKey: process.env["PLAYERS_TABLE_SORT_KEY"] ?? "",
+    schema: {
+      id: process.env["PLAYER_TABLE_ID"] ?? "player table id",
+      displayName: process.env["PLAYER_TABLE_SORT_KEY"] ?? "player table sort key",
+      gameCode: process.env["PLAYER_TABLE_PARTITION_KEY"] ?? "player table partition key",
+      assignedTo: process.env["PLAYER_TABLE_ASSIGNED_TO"] ?? "player table assigned to"
+    },
   },
   games: {
     name: process.env["GAMES_TABLE_NAME"] ?? "games table",
-    partitionKey: process.env["GAMES_TABLE_PARTITION_KEY"] ?? "games table partition key"
+    partitionKey: process.env["GAMES_TABLE_PARTITION_KEY"] ?? "games table partition key",
+    schema: {
+      code: process.env["GAMES_TABLE_PARTITION_KEY"] ?? "games table partition key",
+      displayName: process.env["GAMES_TABLE_DISPLAY_NAME"] ?? "games table display name",
+      hostName: process.env["GAMES_TABLE_HOST_NAME"] ?? "games table host name"    
+    },
   }
 } as const
 
