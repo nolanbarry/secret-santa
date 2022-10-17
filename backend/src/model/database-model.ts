@@ -23,30 +23,30 @@ export type AuthModel = { -readonly [key in keyof typeof auth.schema]: string }
 export type DatabaseEntry = GameEntry | UserEntry | PlayerEntry | AuthEntry
 export type DatabaseModel = GameModel | UserModel | PlayerModel | AuthModel
 
-export function toEntry(from: GameModel): GameEntry
-export function toEntry(from: UserModel): UserEntry
-export function toEntry(from: PlayerModel): PlayerEntry
-export function toEntry(from: AuthModel): AuthEntry
-
+/* modelToEntry Overloads */
+export function modelToEntry(from: GameModel): GameEntry
+export function modelToEntry(from: UserModel): UserEntry
+export function modelToEntry(from: PlayerModel): PlayerEntry
+export function modelToEntry(from: AuthModel): AuthEntry
 /** Converts a Model object into its corresponding Entry object (as in, converts each key name to kebab-case). */
-export function toEntry(from: GameModel | UserModel | PlayerModel | AuthModel): GameEntry | UserEntry | PlayerEntry | AuthEntry {
+export function modelToEntry(from: Record<string, string>): Record<string, string> {
     let result: any = {}
     for (let [key, value] of Object.entries(from)) {
-        result[kebabToCamel(key)] = value
+        result[camelToKebab(key)] = value
     }
     return result
 }
 
-export function fromEntry(from: GameEntry): GameModel
-export function fromEntry(from: UserEntry): UserModel
-export function fromEntry(from: PlayerEntry): PlayerModel
-export function fromEntry(from: AuthEntry): AuthModel
-
+/* entryToModel overloads */
+export function entryToModel(from: GameEntry): GameModel
+export function entryToModel(from: UserEntry): UserModel
+export function entryToModel(from: PlayerEntry): PlayerModel
+export function entryToModel(from: AuthEntry): AuthModel
 /** Converts an Entry object into its corresponding Model object (as in, converts each key name to camelCase). */
-export function fromEntry(from: GameEntry | UserEntry | PlayerEntry | AuthEntry): GameModel | UserModel | PlayerModel | AuthModel {
+export function entryToModel(from: Record<string, string>): Record<string, string> {
     let result: any = {}
     for (let [key, value] of Object.entries(from)) {
-        result[camelToKebab(key)] = value
+        result[kebabToCamel(key)] = value
     }
     return result
 }

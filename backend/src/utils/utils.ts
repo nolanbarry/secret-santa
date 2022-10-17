@@ -139,10 +139,8 @@ export function capitalize(word: string) {
 
 /** Convert kebab-case string to camelCase. */
 export function kebabToCamel(kebab: string) {
-  // gotta manually add which words are abbreviations and should be calculated
-  const abbreviations = new Set(['otp', 'uuid', 'dao', 'ddb', 'sns', 'ses'])
   const tokens = kebab.split('-')
-  return tokens[0]+tokens.slice(1).map(word => abbreviations.has(word) ? word.toUpperCase() : capitalize(word)).join('')
+  return tokens[0]+tokens.slice(1).map(word => capitalize(word)).join('')
 }
 
 /** Convert camelCase string to kebab-case. */
@@ -150,13 +148,9 @@ export function camelToKebab(camel: string) {
   const isUppercase = (letter: string) => letter == letter.toUpperCase()
   let tokens = [camel[0]]
   for (let letter of camel.slice(1)) {
-    let last = tokens.length - 1
-    let lastLetter = tokens[last][tokens[last].length-1]
-    if (isUppercase(letter) && !isUppercase(lastLetter)) {
+    if (isUppercase(letter))
       tokens.push("")
-      last++
-    }
-    tokens[last] += letter
+    tokens[tokens.length - 1] += letter
   }
   return tokens.map(word => word.toLowerCase()).join('-')
 }

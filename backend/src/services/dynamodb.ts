@@ -1,10 +1,10 @@
-import { DynamoDB } from "@aws-sdk/client-dynamodb";
+import { AttributeValue, DynamoDB } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { GameEntry, UserEntry, PlayerEntry, AuthEntry, fromEntry, GameModel, UserModel, PlayerModel, AuthModel, toEntry, DatabaseModel, DatabaseEntry } from "../model/database-model";
+import { GameEntry, UserEntry, PlayerEntry, AuthEntry, entryToModel, GameModel, UserModel, PlayerModel, AuthModel, modelToEntry, DatabaseModel, DatabaseEntry } from "../model/database-model";
 import { HTTPError } from "../model/error";
 import { getModeOfContact, ModeOfContact } from "../model/modeofcontact";
 import constants from "../utils/constants";
-import { generateRandomString, generateUserId, kebabToCamel } from "../utils/utils";
+import { generateRandomString, generateUserId } from "../utils/utils";
 
 const ddb = new DynamoDB({ region: constants.region })
 const schema = constants.tables
@@ -77,6 +77,21 @@ export async function login(userId: string) {
   return otp
 }
 
+/**
+ * Finds the pending OTP entry in the Auth table, then generates and returns an auth token, updating
+ * the entry to include the auth token.
+ * @param userId The id of the user submitting the OTP.
+ * @param otp The OTP, a 6 character string of numbers sent to the user.
+ * @returns The authorization token, a string of 24 random characters.
+ */
+export async function verifyOtp(userId: string, otp: string): Promise<string | null> {
+  let auth = await getAuth(userId, otp)
+  if (!auth || auth.authToken) return null
+  const authToken = generateRandomString(constants.authTokenCharacters, constants.authTokenLength)
+  await setAuthToken(auth, authToken)
+  return authToken
+}
+
 
 /**
  * Retrieves (if possible) auth token from the auth table, then returns the associated user id. 
@@ -89,17 +104,7 @@ export async function authenticate(authToken: string) {
   if (!auth) return null
 
   // update expiration date of auth token
-  let newExpirationDate = Date.now() / 1000 + schema.auth.authTokenTTL
-  ddb.updateItem({
-    TableName: schema.auth.name,
-    Key: marshall({
-      [schema.auth.partitionKey]: auth[kebabToCamel(schema.auth.partitionKey) as keyof AuthModel]!,
-      [schema.auth.sortKey]: auth[kebabToCamel(schema.auth.sortKey) as keyof AuthModel]!
-    }),
-    UpdateExpression: "#ttl = :new-expiration",
-    ExpressionAttributeNames: { '#ttl': schema.auth.ttlKey },
-    ExpressionAttributeValues: marshall({ ':new-expiration': newExpirationDate.toString() })
-  })
+  await extendExpirationDate(auth, schema.auth.authTokenTTL)
   return auth.id
 }
 
@@ -108,7 +113,7 @@ export async function authenticate(authToken: string) {
  * @param userId The id fo the user to retrieve players of.
  * @returns An array of the `Player` objects
  */
-export async function getPlayers(userId: string) {
+export async function getPlayers(userId: string): Promise<PlayerModel[]> {
   const response = await ddb.query({
     KeyConditionExpression: '#id = :id',
     ExpressionAttributeNames: {
@@ -119,7 +124,7 @@ export async function getPlayers(userId: string) {
     }),
     TableName: schema.players.name
   })
-  let players = response.Items?.map(item => unmarshall(item) as PlayerEntry);
+  let players = response.Items?.map(item => entryToModel(unmarshall(item) as PlayerEntry) as PlayerModel);
 
   return players ?? [];
 }
@@ -150,7 +155,7 @@ async function getter<TableEntryType extends DatabaseModel>(tableSchema: TableSc
     })
   })
 
-  return response.Item ? fromEntry(unmarshall(response.Item!) as any) as TableEntryType : null
+  return response.Item ? entryToModel(unmarshall(response.Item!) as any) as TableEntryType : null
 }
 
 /**
@@ -175,7 +180,7 @@ async function indexGetter<TableEntryType extends DatabaseModel>(tableName: stri
       ...(sortKeyValue && { ':sortValue': sortKeyValue })
     })
   })
-  return response.Items?.length ? fromEntry(unmarshall(response.Items![0]) as any) as TableEntryType : null
+  return response.Items?.length ? entryToModel(unmarshall(response.Items![0]) as any) as TableEntryType : null
 }
 
 /** Retrieve a game by its gameCode. Returns `null` if no game exists with that game code. */
@@ -189,7 +194,7 @@ const getUserByPhoneNumber = (phoneNumber: string) => indexGetter<UserModel>(sch
 const getUserByEmail = (email: string) => indexGetter<UserModel>(schema.users.name, schema.users.indexes.byEmail, email)
 
 /** Retrieves a player by game code and display name. Returns `null` if the player does not exist in the game */
-const getPlayer = (gameCode: string, displayName: string) => getter<PlayerModel>(schema.players, gameCode, displayName)
+export const getPlayer = (gameCode: string, displayName: string) => getter<PlayerModel>(schema.players, gameCode, displayName)
 
 /** Retrieves an auth table entry by user id and OTP. Returns `null` if OTP isn't valid for given player. */
 const getAuth = (userId: string, otp: string) => getter<AuthModel>(schema.auth, userId, otp)
@@ -206,7 +211,7 @@ const getAuthByAuthToken = (authToken: string) => indexGetter<AuthModel>(schema.
 async function putter<TableEntryType extends DatabaseModel>(tableSchema: TableSchema, entry: TableEntryType): Promise<void> {
   await ddb.putItem({
     TableName: tableSchema.name,
-    Item: marshall(toEntry(entry as any))
+    Item: marshall(modelToEntry(entry as any))
   })
 }
 
@@ -218,6 +223,33 @@ const putUser = (user: UserModel) => putter(schema.users, user)
 const putPlayer = (player: PlayerModel) => putter(schema.players, player)
 /** Puts an auth entry into the Auth table */
 const putAuth = (auth: AuthModel) => putter(schema.auth, auth)
+
+/* UPDATERS */
+/* Create these functions only as you need them */
+
+async function extendExpirationDate(authModel: AuthModel, extensionTime: number) {
+  const authEntry = modelToEntry(authModel)
+  let newExpirationDate = Date.now() / 1000 + extensionTime
+  await ddb.updateItem({
+    TableName: schema.auth.name,
+    Key: getKey(schema.auth, authEntry),
+    UpdateExpression: "#ttl = :new-expiration",
+    ExpressionAttributeNames: { '#ttl': schema.auth.ttlKey },
+    ExpressionAttributeValues: marshall({ ':new-expiration': newExpirationDate.toString() })
+  })
+}
+
+async function setAuthToken(authModel: AuthModel, token: string) {
+  const authEntry = modelToEntry(authModel)
+  await ddb.updateItem({
+    TableName: schema.auth.name,
+    Key: getKey(schema.auth, authEntry),
+    UpdateExpression: "#token = :new-token",
+    ExpressionAttributeNames: { '#token': schema.auth.schema.authToken },
+    ExpressionAttributeValues: marshall({ ':new-token': token })
+  })
+}
+
 
 
 /* DELETERS */
@@ -240,3 +272,13 @@ const deleteUser = (userId: string) => deleter(schema.users, userId)
 const deletePlayer = (gameCode: string, displayName: string) => deleter(schema.players, gameCode, displayName)
 /** Removes an auth entry from the auth table */
 const deleteAuth = (userId: string, otp: string) => deleter(schema.auth, userId, otp)
+
+/** MISCELLANEOUS */
+
+/** Convert a Model object to the Key attribute used in get/update/delete requests */
+function getKey(tableSchema: TableSchema, entry: DatabaseEntry): Record<string, AttributeValue> {
+  return marshall({
+    [tableSchema.partitionKey]: entry[tableSchema.partitionKey as keyof typeof entry],
+    ...(tableSchema.sortKey && { [tableSchema.sortKey]: entry[tableSchema.sortKey as keyof typeof entry] })
+  })
+}

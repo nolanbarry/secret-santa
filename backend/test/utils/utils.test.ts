@@ -130,14 +130,15 @@ describe('utils: lambda()', () => {
 describe('utils: case conversion', () => {
   it('kebabToCamel() works', () => {
     expect(kebabToCamel('hello-world')).to.equal('helloWorld')
-    expect(kebabToCamel('submit-otp')).to.equal('submitOTP')
+    expect(kebabToCamel('submit-otp')).to.equal('submitOtp')
     expect(kebabToCamel('word')).to.equal('word')
     expect(kebabToCamel('aa-bb-cc-dd-ee')).to.equal('aaBbCcDdEe')
   })
 
   it('camelToKebab() works', () => {
     expect(camelToKebab('helloWorld')).to.equal('hello-world')
-    expect(camelToKebab('submitOTP')).to.equal('submit-otp')
+    expect(camelToKebab('submitOTP')).to.equal('submit-o-t-p')
+    expect(camelToKebab('submitOtp')).to.equal('submit-otp')
     expect(camelToKebab('word')).to.equal('word')
     expect(camelToKebab('aaBbCcDdEe')).to.equal('aa-bb-cc-dd-ee')
   })

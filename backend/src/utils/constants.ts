@@ -78,5 +78,7 @@ export default {
   /** The AWS region the lambda is being called from, i.e. `us-west-2` */
   region: process.env["AWS_REGION"] ?? "us-west-2",
   tables,
-  otpLength: 6
+  otpLength: 6,
+  authTokenCharacters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-0123456789$%&*",
+  authTokenLength: 24
 } as const

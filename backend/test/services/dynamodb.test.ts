@@ -10,6 +10,7 @@ import * as modeOfContact from '../../src/model/modeofcontact'
 import * as utils from '../../src/utils/utils'
 import constants from '../../src/utils/constants'
 import { HTTPError } from '../../src/model/error'
+import { AuthEntry } from '../../src/model/database-model'
 
 /*
  * Helpful Documentation:
@@ -92,7 +93,7 @@ describe("dynamodb: authenticate()", () => {
         otp: "123456",
         "auth-token": "<AUTH TOKEN>",
         "expiration-date": "123456789" 
-      })]
+      } as AuthEntry)]
     })
 
     await expect(authenticate('<AUTH TOKEN>')).to.eventually.equal("<USER ID>")
