@@ -85,12 +85,28 @@ describe("dynamodb: login()", () => {
 })
 
 describe("dynamodb: authenticate()", () => {
+  it("Returns user id when auth token does exist", async () => {
+    dynamodbMock.on(QueryCommand).resolves({
+      Items: [marshall({
+        id: "<USER ID>",
+        otp: "123456",
+        "auth-token": "<AUTH TOKEN>",
+        "expiration-date": "123456789" 
+      })]
+    })
+
+    await expect(authenticate('<AUTH TOKEN>')).to.eventually.equal("<USER ID>")
+    expect(dynamodbMock.commandCalls(QueryCommand).length, "query called once").to.equal(1)
+    expect(dynamodbMock.commandCalls(UpdateItemCommand).length, "expiration date updated called once").to.equal(1)
+  })
+
   it("Returns null when auth token doesn't exist", async () => {
-    dynamodbMock.on(QueryCommand).resolves({Items: []})
+    dynamodbMock.on(QueryCommand).resolves({ Items: [] })
 
     await expect(authenticate('an auth token')).to.eventually.equal(null)
     expect(dynamodbMock.commandCalls(QueryCommand).length, "query called once").to.equal(1)
     expect(dynamodbMock.commandCalls(UpdateItemCommand).length, "update item not called").to.equal(0)
   })
+
 })
 

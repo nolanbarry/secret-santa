@@ -1,5 +1,5 @@
 import { describe, it } from 'mocha'
-import { fetchJson, generateRandomString, generateUserId, lambda, response, validateRequestBody } from '../../src/utils/utils'
+import { fetchJson, generateRandomString, generateUserId, lambda, response, validateRequestBody, camelToKebab, kebabToCamel } from '../../src/utils/utils'
 import { expect, use } from 'chai'
 import { HTTPError } from '../../src/model/error'
 import sinonChai from 'sinon-chai'
@@ -124,5 +124,21 @@ describe('utils: lambda()', () => {
 
     await expect(wrapper({} as APIGatewayProxyEvent, {} as Context), "returns correct response")
       .to.eventually.deep.equal(response(500, { message: "Internal Server Error" }))
+  })
+})
+
+describe('utils: case conversion', () => {
+  it('kebabToCamel() works', () => {
+    expect(kebabToCamel('hello-world')).to.equal('helloWorld')
+    expect(kebabToCamel('submit-otp')).to.equal('submitOTP')
+    expect(kebabToCamel('word')).to.equal('word')
+    expect(kebabToCamel('aa-bb-cc-dd-ee')).to.equal('aaBbCcDdEe')
+  })
+
+  it('camelToKebab() works', () => {
+    expect(camelToKebab('helloWorld')).to.equal('hello-world')
+    expect(camelToKebab('submitOTP')).to.equal('submit-otp')
+    expect(camelToKebab('word')).to.equal('word')
+    expect(camelToKebab('aaBbCcDdEe')).to.equal('aa-bb-cc-dd-ee')
   })
 })

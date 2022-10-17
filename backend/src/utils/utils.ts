@@ -132,4 +132,32 @@ export function generateUserId(): string {
   return randomUUID()
 }
 
+/** Capitalizes the first letter of a string. */
+export function capitalize(word: string) {
+  return word[0].toUpperCase() + word.slice(1)
+}
+
+/** Convert kebab-case string to camelCase. */
+export function kebabToCamel(kebab: string) {
+  // gotta manually add which words are abbreviations and should be calculated
+  const abbreviations = new Set(['otp', 'uuid', 'dao', 'ddb', 'sns', 'ses'])
+  const tokens = kebab.split('-')
+  return tokens[0]+tokens.slice(1).map(word => abbreviations.has(word) ? word.toUpperCase() : capitalize(word)).join('')
+}
+
+/** Convert camelCase string to kebab-case. */
+export function camelToKebab(camel: string) {
+  const isUppercase = (letter: string) => letter == letter.toUpperCase()
+  let tokens = [camel[0]]
+  for (let letter of camel.slice(1)) {
+    let last = tokens.length - 1
+    let lastLetter = tokens[last][tokens[last].length-1]
+    if (isUppercase(letter) && !isUppercase(lastLetter)) {
+      tokens.push("")
+      last++
+    }
+    tokens[last] += letter
+  }
+  return tokens.map(word => word.toLowerCase()).join('-')
+}
 

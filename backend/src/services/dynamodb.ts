@@ -1,10 +1,10 @@
 import { DynamoDB } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { Game, User, Player, Auth } from "../model/dao-interfaces";
+import { GameEntry, UserEntry, PlayerEntry, AuthEntry, fromEntry, GameModel, UserModel, PlayerModel, AuthModel, toEntry, DatabaseModel, DatabaseEntry } from "../model/database-model";
 import { HTTPError } from "../model/error";
 import { getModeOfContact, ModeOfContact } from "../model/modeofcontact";
 import constants from "../utils/constants";
-import { generateRandomString, generateUserId } from "../utils/utils";
+import { generateRandomString, generateUserId, kebabToCamel } from "../utils/utils";
 
 const ddb = new DynamoDB({ region: constants.region })
 const schema = constants.tables
@@ -81,7 +81,6 @@ export async function login(userId: string) {
 /**
  * Retrieves (if possible) auth token from the auth table, then returns the associated user id. 
  * Returns null if the auth token doesn't exist. 
- * 
  * @param authToken The authToken to authenticate.
  * @returns The userId, a unique random string to identify the user. 
  */
@@ -94,8 +93,8 @@ export async function authenticate(authToken: string) {
   ddb.updateItem({
     TableName: schema.auth.name,
     Key: marshall({
-      [schema.auth.partitionKey]: auth[schema.auth.partitionKey as keyof Auth]!,
-      [schema.auth.sortKey]: auth[schema.auth.sortKey as keyof Auth]!
+      [schema.auth.partitionKey]: auth[kebabToCamel(schema.auth.partitionKey) as keyof AuthModel]!,
+      [schema.auth.sortKey]: auth[kebabToCamel(schema.auth.sortKey) as keyof AuthModel]!
     }),
     UpdateExpression: "#ttl = :new-expiration",
     ExpressionAttributeNames: { '#ttl': schema.auth.ttlKey },
@@ -105,36 +104,24 @@ export async function authenticate(authToken: string) {
 }
 
 /**
- * Retrieves the players with a given userid and returns them. You’ll need to make a 
- * function that maps a dynamodb Item to a Player type of object (also needs to be created). 
- * see our database model for attribute names. add attribute names to constants.ts instead 
- * of using naked strings.
- * 
- * TODO: We should add/update some kind of lastUsed property in this function, 
- * but we can add that later if needs be.
- * 
- * @param userId The userId that belongs to the user we're retrieving players for.`
- * @returns An array of the players that are stored under a single user's id
+ * Retrieves and returns the players associated with a specific user.
+ * @param userId The id fo the user to retrieve players of.
+ * @returns An array of the `Player` objects
  */
-export async function getPlayersForUser(userId: string) {
-
-  const params = {
+export async function getPlayers(userId: string) {
+  const response = await ddb.query({
     KeyConditionExpression: '#id = :id',
-    ExpressionAttributeValues: marshall({
-      ':id': userId
-    }),
     ExpressionAttributeNames: {
       '#id': schema.players.schema.id
     },
+    ExpressionAttributeValues: marshall({
+      ':id': userId
+    }),
     TableName: schema.players.name
-  };
-  const res = await ddb.query(params)
-  let players: Player[] = [];
-  res.Items?.forEach(function (item) {
-    players.push(unmarshall(item) as Player);
   })
+  let players = response.Items?.map(item => unmarshall(item) as PlayerEntry);
 
-  return players;
+  return players ?? [];
 }
 
 /* HELPER FUNCTIONS */
@@ -154,7 +141,7 @@ type TableSchema = {
  * @param sortKeyValue The value of the sort key, optional.
  * @returns A promise for the table entry, if it exists, or null.
  */
-async function getter<TableEntryType>(tableSchema: TableSchema, partitionKeyValue: string, sortKeyValue?: string): Promise<TableEntryType | null> {
+async function getter<TableEntryType extends DatabaseModel>(tableSchema: TableSchema, partitionKeyValue: string, sortKeyValue?: string): Promise<TableEntryType | null> {
   const response = await ddb.getItem({
     TableName: tableSchema.name,
     Key: marshall({
@@ -163,7 +150,7 @@ async function getter<TableEntryType>(tableSchema: TableSchema, partitionKeyValu
     })
   })
 
-  return response.Item ? unmarshall(response.Item!) as TableEntryType : null
+  return response.Item ? fromEntry(unmarshall(response.Item!) as any) as TableEntryType : null
 }
 
 /**
@@ -174,7 +161,7 @@ async function getter<TableEntryType>(tableSchema: TableSchema, partitionKeyValu
  * @param sortKeyValue The value of sort key, optional.
  * @returns A promise for the table entry, if it exists, or null.
  */
-async function indexGetter<TableEntryType>(tableName: string, indexSchema: TableSchema, partitionKeyValue: string, sortKeyValue?: string): Promise<TableEntryType | null> {
+async function indexGetter<TableEntryType extends DatabaseModel>(tableName: string, indexSchema: TableSchema, partitionKeyValue: string, sortKeyValue?: string): Promise<TableEntryType | null> {
   const response = await ddb.query({
     TableName: tableName,
     IndexName: indexSchema.name,
@@ -188,26 +175,26 @@ async function indexGetter<TableEntryType>(tableName: string, indexSchema: Table
       ...(sortKeyValue && { ':sortValue': sortKeyValue })
     })
   })
-  return response.Items?.length ? unmarshall(response.Items![0]) as TableEntryType : null
+  return response.Items?.length ? fromEntry(unmarshall(response.Items![0]) as any) as TableEntryType : null
 }
 
 /** Retrieve a game by its gameCode. Returns `null` if no game exists with that game code. */
-const getGame = (gameCode: string) => getter<Game>(schema.games, gameCode)
+const getGame = (gameCode: string) => getter<GameModel>(schema.games, gameCode)
 
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
-const getUser = (userId: string) => getter<User>(schema.users, userId)
+const getUser = (userId: string) => getter<UserModel>(schema.users, userId)
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
-const getUserByPhoneNumber = (phoneNumber: string) => indexGetter<User>(schema.users.name, schema.users.indexes.byPhoneNumber, phoneNumber)
+const getUserByPhoneNumber = (phoneNumber: string) => indexGetter<UserModel>(schema.users.name, schema.users.indexes.byPhoneNumber, phoneNumber)
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
-const getUserByEmail = (email: string) => indexGetter<User>(schema.users.name, schema.users.indexes.byEmail, email)
+const getUserByEmail = (email: string) => indexGetter<UserModel>(schema.users.name, schema.users.indexes.byEmail, email)
 
 /** Retrieves a player by game code and display name. Returns `null` if the player does not exist in the game */
-const getPlayer = (gameCode: string, displayName: string) => getter<Player>(schema.players, gameCode, displayName)
+const getPlayer = (gameCode: string, displayName: string) => getter<PlayerModel>(schema.players, gameCode, displayName)
 
 /** Retrieves an auth table entry by user id and OTP. Returns `null` if OTP isn't valid for given player. */
-const getAuth = (userId: string, otp: string) => getter<Auth>(schema.auth, userId, otp)
+const getAuth = (userId: string, otp: string) => getter<AuthModel>(schema.auth, userId, otp)
 /** Retrieves an auth table entry by auth token. Returns `null` if the auth token isn't valid. */
-const getAuthByAuthToken = (authToken: string) => indexGetter<Auth>(schema.auth.name, schema.auth.indexes.byAuthToken, authToken)
+const getAuthByAuthToken = (authToken: string) => indexGetter<AuthModel>(schema.auth.name, schema.auth.indexes.byAuthToken, authToken)
 
 /* SETTERS */
 
@@ -216,21 +203,21 @@ const getAuthByAuthToken = (authToken: string) => indexGetter<Auth>(schema.auth.
  * @param tableSchema The schema of the table. This function only uses the name.
  * @param entry The table entry, which will be marshalled automatically.
  */
-async function putter<TableEntryType>(tableSchema: TableSchema, entry: TableEntryType): Promise<void> {
+async function putter<TableEntryType extends DatabaseModel>(tableSchema: TableSchema, entry: TableEntryType): Promise<void> {
   await ddb.putItem({
     TableName: tableSchema.name,
-    Item: marshall(entry)
+    Item: marshall(toEntry(entry as any))
   })
 }
 
 /** Puts a game entry into the Games table */
-const putGame = (game: Game) => putter(schema.games, game)
+const putGame = (game: GameModel) => putter(schema.games, game)
 /** Puts a user entry into the Users table */
-const putUser = (user: User) => putter(schema.users, user)
+const putUser = (user: UserModel) => putter(schema.users, user)
 /** Puts a player entry into the Players table */
-const putPlayer = (player: Player) => putter(schema.players, player)
+const putPlayer = (player: PlayerModel) => putter(schema.players, player)
 /** Puts an auth entry into the Auth table */
-const putAuth = (auth: Auth) => putter(schema.auth, auth)
+const putAuth = (auth: AuthModel) => putter(schema.auth, auth)
 
 
 /* DELETERS */
