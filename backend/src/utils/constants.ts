@@ -32,7 +32,7 @@ const tables = {
     partitionKey: 'id',
     schema: {
       id: 'id',
-      phoneNumber: 'phoneNumber',
+      phoneNumber: 'phone-number',
       email: 'email'
     },
     indexes: {
@@ -63,7 +63,9 @@ const tables = {
     schema: {
       code: 'code',
       displayName: 'display-name',
-      hostName: 'host-name'    
+      hostName: 'host-name',
+      started: 'started',
+      exchangeDate: 'exchange-date'   
     },
   }
 } as const
@@ -90,6 +92,10 @@ export default {
   authToken: {
     validCharacters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-0123456789$%&*",
     length: 24,
+  },
+  gameCode: { // allows for 26^7 unique game codes ~= 8 billion
+    validCharacters: "ABDEFGHIJKLMNOPQRSTUVWXYZ",
+    length: 7
   },
   strings
 } as const

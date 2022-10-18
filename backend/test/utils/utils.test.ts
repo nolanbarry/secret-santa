@@ -17,20 +17,36 @@ afterEach(() => {
 })
 
 describe('utils: validateRequestBody()', () => {
+  it('Returns parsed body with valid input', function () {
+    const body = {
+      str: "foo",
+      num: 5,
+      bool: true
+    }
+    const typing = {
+      str: String,
+      num: Number,
+      bool: Boolean
+    }
+    expect(validateRequestBody(JSON.stringify(body), typing)).to.deep.equal(body)
+  })
+
   it('Throws error for no body', function () {
-    expect(() => validateRequestBody(null, [])).to.throw(HTTPError)
+    expect(() => validateRequestBody(null, {})).to.throw(HTTPError)
   })
 
   it('Throws error for missing attributes', function () {
-    expect(() => validateRequestBody("{}", ['foo'])).to.throw(HTTPError)
+    expect(() => validateRequestBody("{}", {foo: String})).to.throw(HTTPError)
   })
 
   it('Throws error for invalid json body', function () {
-    expect(() => validateRequestBody("bar", ['foo'])).to.throw(HTTPError)
+    expect(() => validateRequestBody("bar", {foo: String})).to.throw(HTTPError)
   })
 
-  it('Returns parsed body with valid input', function () {
-    expect(validateRequestBody('{"bar": "foo"}', ["bar"])).deep.equals({ bar: "foo" })
+  it('Throws error for incorrect types', function () {
+    expect(() => validateRequestBody('{"foo": 5}', {foo: String})).to.throw(HTTPError)
+    expect(() => validateRequestBody('{"foo": "bar"}', {foo: Boolean})).to.throw(HTTPError)
+    expect(() => validateRequestBody('{"foo": true}', {foo: Number})).to.throw(HTTPError)
   })
 })
 

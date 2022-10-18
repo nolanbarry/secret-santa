@@ -5,8 +5,8 @@ import sinon from 'sinon'
 import { AwsStub, mockClient } from 'aws-sdk-client-mock'
 import { DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
 import { marshall } from '@aws-sdk/util-dynamodb';
-import { authenticate, getPlayers, getUserIdByContactString, login, verifyOtp } from '../../src/services/dynamodb'
-import * as modeOfContact from '../../src/model/modeofcontact'
+import { authenticate, getPlayers, getUserIdByContactString, login, verifyOtp, createGame } from '../../src/services/dynamodb'
+import * as modeOfContact from '../../src/model/mode-of-contact'
 import * as utils from '../../src/utils/utils'
 import constants from '../../src/utils/constants'
 import { ExpectedError, HTTPError } from '../../src/model/error'
@@ -166,6 +166,40 @@ describe("dynamodb: getPlayers()", () => {
     dynamodbMock.on(QueryCommand).resolvesOnce({ Items: [] })
     await expect(getPlayers("<USER ID>")).to.eventually.deep.equal([])
     expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(1)
+  })
+})
+
+describe("dynamodb: createGame()", () => {
+  it("Creates a game and player", async () => {
+    sinon.stub(utils, "generateRandomString").callsFake((validCharacters: string, length: number) => {
+      expect(validCharacters).to.equal(constants.gameCode.validCharacters)
+      expect(length).to.equal(constants.gameCode.length)
+      return "ABCDEFG"
+    })
+    dynamodbMock.on(GetItemCommand).resolvesOnce({})
+
+    await expect(createGame("<GAME NAME>", 0, "<HOST ID>", "<HOST DISPLAY NAME>")).to.eventually.equal("ABCDEFG")
+    expect(dynamodbMock.commandCalls(GetItemCommand).length).to.equal(1)
+    expect(dynamodbMock.commandCalls(PutItemCommand).length).to.equal(2)
+  })
+
+  it("Generates game codes until a valid one is found", async () => {
+    let calls = 0
+    sinon.stub(utils, "generateRandomString").callsFake(() => {
+      return (++calls).toString()
+    })
+    dynamodbMock.on(GetItemCommand).resolvesOnce({Item: {}}).resolvesOnce({Item: {}}).resolvesOnce({Item: {}}).resolves({})
+
+    await expect(createGame("<GAME NAME>", 0, "<HOST ID>", "<HOST DISPLAY NAME>")).to.eventually.equal("4")
+    expect(dynamodbMock.commandCalls(GetItemCommand).length).to.equal(4)
+  })
+
+  it("Abandons code generation after several successive failures", async () => {
+    sinon.stub(utils, "generateRandomString").returns("<GAME CODE>")
+    dynamodbMock.on(GetItemCommand).resolves({ Item: {} })
+
+    await expect(createGame("<GAME NAME>", 0, "<HOST ID>", "<HOST DISPLAY NAME>")).to.eventually.be.rejectedWith(HTTPError)
+    expect(dynamodbMock.commandCalls(GetItemCommand).length).to.be.greaterThan(10) // don't need to test exact number of calls
   })
 })
 

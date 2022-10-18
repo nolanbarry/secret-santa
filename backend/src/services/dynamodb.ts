@@ -2,7 +2,7 @@ import { AttributeValue, DynamoDB } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { GameEntry, UserEntry, PlayerEntry, AuthEntry, entryToModel, GameModel, UserModel, PlayerModel, AuthModel, modelToEntry, DatabaseModel, DatabaseEntry } from "../model/database-model";
 import { ExpectedError, HTTPError } from "../model/error";
-import { getModeOfContact, ModeOfContact } from "../model/modeofcontact";
+import { getModeOfContact, ModeOfContact } from "../model/mode-of-contact";
 import constants from "../utils/constants";
 import { generateRandomString, generateUserId } from "../utils/utils";
 
@@ -97,13 +97,13 @@ export async function verifyOtp(userId: string, otp: string): Promise<string | n
  * @param authToken The authToken to authenticate.
  * @returns The userId, a unique random string to identify the user. 
  */
-export async function authenticate(authToken: string) {
+export async function authenticate(authToken: string): Promise<string> {
   let auth = await getAuthByAuthToken(authToken);
   if (!auth) throw new ExpectedError(constants.strings.authTokenDne)
 
   // update expiration date of auth token
   await extendExpirationDate(auth, schema.auth.authTokenTTL)
-  return auth.id
+  return auth.id!
 }
 
 /**
@@ -112,6 +112,7 @@ export async function authenticate(authToken: string) {
  * @returns An array of the `Player` objects
  */
 export async function getPlayers(userId: string): Promise<PlayerModel[]> {
+  // TODO: Instead of a raw query, this should be querying on an index for partitioning by user id.
   const response = await ddb.query({
     KeyConditionExpression: '#id = :id',
     ExpressionAttributeNames: {
@@ -120,11 +121,53 @@ export async function getPlayers(userId: string): Promise<PlayerModel[]> {
     ExpressionAttributeValues: marshall({
       ':id': userId
     }),
-    TableName: schema.players.name
+    TableName: schema.players.name,
   })
   let players = response.Items?.map(item => entryToModel(unmarshall(item) as PlayerEntry) as PlayerModel);
 
   return players ?? [];
+}
+
+
+/**
+ * Creates a Game with the given display name, then creates a Player object for the host. Returns the game
+ * code.
+ * @param gameName The display name of the game. Does not need to be unique.
+ * @param hostId The id of the user creating the game
+ * @param hostDisplayName The display name the host has chosen
+ * @returns The game code, a 7 letter uppercase string.
+ */
+export async function createGame(gameName: string, exchangeDate: number, hostId: string, hostDisplayName: string): Promise<string> {
+  // generate a game code, making sure that no game already exists with that code
+  // if no unique game code can be generated after 15 attempts, abort
+  const maxAttempts = 15
+  let attempts = 0, gameCode = ""
+  do {
+    gameCode = generateRandomString(constants.gameCode.validCharacters, constants.gameCode.length)
+    attempts++
+  } while (await getGame(gameCode) && attempts < maxAttempts);
+
+  if (attempts == maxAttempts)
+    throw new HTTPError(500, "Failed to generate a game.")
+
+  // TODO: Impose limits on number of games that a person can host?
+
+  await Promise.all([
+    putGame({
+      code: gameCode,
+      displayName: gameName,
+      hostName: hostDisplayName,
+      started: false,
+      exchangeDate: exchangeDate.toString()
+    }),
+    putPlayer({
+      gameCode: gameCode,
+      displayName: hostDisplayName,
+      id: hostId
+    })
+  ])
+
+  return gameCode
 }
 
 /* HELPER FUNCTIONS */

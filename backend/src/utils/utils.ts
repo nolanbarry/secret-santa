@@ -69,25 +69,46 @@ export function lambda(handler: Handler): Handler {
   return wrapper
 }
 
-
+/* Typing for validateRequestBody */
+type RequestTypes = typeof Boolean | typeof Number | typeof String
+export type PropertyDefinition = {
+  [name: string]: RequestTypes
+}
+export type TypeOfMap<type extends RequestTypes> = type extends typeof Boolean ? boolean : (type extends typeof Number ? number : string)
+export type RequestBody<Definition extends PropertyDefinition> = {
+  [Property in keyof Definition]: TypeOfMap<Definition[Property]>
+}
 /**
  * Validates that the body received in a handler contains everything we expect it to have.
- * If not, an HTTPError is thrown.
+ * If not, an HTTPError is thrown. Otherwise returns a (typed) object based on the based
+ * requiredProperties.
  * @param body The request body, straight from `event.body`
- * @param requiredProperties The name of the parameters expected to be in `body`
+ * @param requiredProperties The name of the parameters expected to be in `body`, mapped to their types. Valid types are `String`, `Boolean`, and `Number`.
  * @returns `body`, parsed into an object.
  */
-export function validateRequestBody(body: string | null, requiredProperties: string[]): { [key: string]: any } {
+export function validateRequestBody<T extends PropertyDefinition>(body: string | null, requiredProperties: T): RequestBody<T>  {
   if (!body) throw new HTTPError(400, "Request body is required");
   let parsed;
+
   try {
     parsed = JSON.parse(body);
   } catch (error) {
     throw new HTTPError(400, "Body wasn't a valid JS object")
   }
-  for (let property of requiredProperties) {
+
+  const typeMap: any = {
+    'boolean': Boolean,
+    'string': String,
+    'number': Number
+  }
+
+  for (let [property, expectedType] of Object.entries(requiredProperties)) {
+    // assert that property exists in request body 
     if (!(property in parsed))
       throw new HTTPError(400, `Missing required parameter "${property}"`)
+    // assert that value is the correct type
+    if (typeMap[typeof parsed[property]] != expectedType)
+      throw new HTTPError(400, `Parameter ${property} should be of type ${expectedType}, got ${typeof parsed[property]}`)
   }
   return parsed
 }
