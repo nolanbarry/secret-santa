@@ -23,35 +23,23 @@ export async function getUserIdByContactString(contactString: string) {
   if (modeOfContact == ModeOfContact.Invalid) {
     throw new HTTPError(400, `"${contactString}" isn't a valid phone number or email.`)
   }
-  const usersTable = schema.users
-  const index = modeOfContact == ModeOfContact.Email ? usersTable.indexes.byEmail : usersTable.indexes.byPhoneNumber
-  // indexes are only queryable, but there should only ever be one item in the index with 
-  // this contact string.
-  let query = await ddb.query({
-    TableName: usersTable.name,
-    IndexName: index.name,
-    KeyConditionExpression: '#key=:value',
-    ExpressionAttributeNames: {
-      '#key': index.partitionKey
-    },
-    ExpressionAttributeValues: {
-      ':value': { S: contactString }
-    }
+  const retrieveUser = (modeOfContact == ModeOfContact.Email) ? getUserByEmail : getUserByPhoneNumber
+  const user = await retrieveUser(contactString)
+
+  // return id if it already exists
+  if (user) return user.id
+
+  // otherwise create the user and return their new id
+  const id = generateUserId()
+  const contactStringKey = (
+    modeOfContact == ModeOfContact.Email ? 
+      schema.users.indexes.byEmail : 
+      schema.users.indexes.byPhoneNumber
+  ).partitionKey
+  await putUser({
+    id,
+    [contactStringKey]: contactString
   })
-  let id: string;
-  if (!!query.Items && query.Items.length > 0) {
-    id = unmarshall(query.Items[0])[usersTable.partitionKey]
-  } else {
-    // no user exists with this contact string, create one
-    id = generateUserId()
-    await ddb.putItem({
-      TableName: usersTable.name,
-      Item: marshall({
-        [usersTable.partitionKey]: id,
-        [index.partitionKey]: contactString
-      })
-    })
-  }
   return id
 }
 
