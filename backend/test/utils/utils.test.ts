@@ -1,5 +1,5 @@
 import { describe, it } from 'mocha'
-import { fetchJson, generateRandomString, generateUserId, lambda, response, validateRequestBody } from '../../src/utils/utils'
+import { fetchJson, generateRandomString, generateUserId, lambda, response, validateRequestBody, camelToKebab, kebabToCamel } from '../../src/utils/utils'
 import { expect, use } from 'chai'
 import { HTTPError } from '../../src/model/error'
 import sinonChai from 'sinon-chai'
@@ -17,20 +17,36 @@ afterEach(() => {
 })
 
 describe('utils: validateRequestBody()', () => {
+  it('Returns parsed body with valid input', function () {
+    const body = {
+      str: "foo",
+      num: 5,
+      bool: true
+    }
+    const typing = {
+      str: String,
+      num: Number,
+      bool: Boolean
+    }
+    expect(validateRequestBody(JSON.stringify(body), typing)).to.deep.equal(body)
+  })
+
   it('Throws error for no body', function () {
-    expect(() => validateRequestBody(null, [])).to.throw(HTTPError)
+    expect(() => validateRequestBody(null, {})).to.throw(HTTPError)
   })
 
   it('Throws error for missing attributes', function () {
-    expect(() => validateRequestBody("{}", ['foo'])).to.throw(HTTPError)
+    expect(() => validateRequestBody("{}", {foo: String})).to.throw(HTTPError)
   })
 
   it('Throws error for invalid json body', function () {
-    expect(() => validateRequestBody("bar", ['foo'])).to.throw(HTTPError)
+    expect(() => validateRequestBody("bar", {foo: String})).to.throw(HTTPError)
   })
 
-  it('Returns parsed body with valid input', function () {
-    expect(validateRequestBody('{"bar": "foo"}', ["bar"])).deep.equals({ bar: "foo" })
+  it('Throws error for incorrect types', function () {
+    expect(() => validateRequestBody('{"foo": 5}', {foo: String})).to.throw(HTTPError)
+    expect(() => validateRequestBody('{"foo": "bar"}', {foo: Boolean})).to.throw(HTTPError)
+    expect(() => validateRequestBody('{"foo": true}', {foo: Number})).to.throw(HTTPError)
   })
 })
 
@@ -124,5 +140,22 @@ describe('utils: lambda()', () => {
 
     await expect(wrapper({} as APIGatewayProxyEvent, {} as Context), "returns correct response")
       .to.eventually.deep.equal(response(500, { message: "Internal Server Error" }))
+  })
+})
+
+describe('utils: case conversion', () => {
+  it('kebabToCamel() works', () => {
+    expect(kebabToCamel('hello-world')).to.equal('helloWorld')
+    expect(kebabToCamel('submit-otp')).to.equal('submitOtp')
+    expect(kebabToCamel('word')).to.equal('word')
+    expect(kebabToCamel('aa-bb-cc-dd-ee')).to.equal('aaBbCcDdEe')
+  })
+
+  it('camelToKebab() works', () => {
+    expect(camelToKebab('helloWorld')).to.equal('hello-world')
+    expect(camelToKebab('submitOTP')).to.equal('submit-o-t-p')
+    expect(camelToKebab('submitOtp')).to.equal('submit-otp')
+    expect(camelToKebab('word')).to.equal('word')
+    expect(camelToKebab('aaBbCcDdEe')).to.equal('aa-bb-cc-dd-ee')
   })
 })
