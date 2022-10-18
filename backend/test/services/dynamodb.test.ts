@@ -1,16 +1,16 @@
 import { describe, it, beforeEach } from 'mocha'
 import { use, expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
-import { AwsStub, mockClient } from 'aws-sdk-client-mock'
-import { DynamoDBClient, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
-import { marshall } from '@aws-sdk/util-dynamodb';
-import { authenticate, getUserIdByContactString, login } from '../../src/services/dynamodb'
 import sinon from 'sinon'
+import { AwsStub, mockClient } from 'aws-sdk-client-mock'
+import { DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
+import { marshall } from '@aws-sdk/util-dynamodb';
+import { authenticate, getPlayers, getUserIdByContactString, login, verifyOtp } from '../../src/services/dynamodb'
 import * as modeOfContact from '../../src/model/modeofcontact'
 import * as utils from '../../src/utils/utils'
 import constants from '../../src/utils/constants'
-import { HTTPError } from '../../src/model/error'
-import { AuthEntry } from '../../src/model/database-model'
+import { ExpectedError, HTTPError } from '../../src/model/error'
+import { AuthEntry, entryToModel, PlayerEntry } from '../../src/model/database-model'
 
 /*
  * Helpful Documentation:
@@ -86,13 +86,13 @@ describe("dynamodb: login()", () => {
 })
 
 describe("dynamodb: authenticate()", () => {
-  it("Returns user id when auth token does exist", async () => {
+  it("Returns user id when auth token exists", async () => {
     dynamodbMock.on(QueryCommand).resolves({
       Items: [marshall({
         id: "<USER ID>",
         otp: "123456",
         "auth-token": "<AUTH TOKEN>",
-        "expiration-date": "123456789" 
+        "expiration-date": "123456789"
       } as AuthEntry)]
     })
 
@@ -101,13 +101,72 @@ describe("dynamodb: authenticate()", () => {
     expect(dynamodbMock.commandCalls(UpdateItemCommand).length, "expiration date updated called once").to.equal(1)
   })
 
-  it("Returns null when auth token doesn't exist", async () => {
+  it("Throws error when auth token doesn't exist", async () => {
     dynamodbMock.on(QueryCommand).resolves({ Items: [] })
 
-    await expect(authenticate('an auth token')).to.eventually.equal(null)
+    await expect(authenticate('an auth token')).to.eventually.be.rejectedWith(ExpectedError)
     expect(dynamodbMock.commandCalls(QueryCommand).length, "query called once").to.equal(1)
     expect(dynamodbMock.commandCalls(UpdateItemCommand).length, "update item not called").to.equal(0)
   })
-
 })
+
+describe("dynamodb: verifyOtp()", () => {
+  it("Generates, sets, and returns an auth token", async () => {
+    sinon.stub(utils, "generateRandomString").returns("<AUTH TOKEN>")
+    dynamodbMock.on(GetItemCommand).resolves({
+      Item: marshall({
+        id: "<USER ID>",
+        otp: "<OTP>",
+        "expiration-date": "<EXPIRATION DATE>"
+      } as AuthEntry)
+    })
+
+    await expect(verifyOtp("<USER ID>", "<OTP>")).to.eventually.equal("<AUTH TOKEN>")
+    expect(dynamodbMock.commandCalls(GetItemCommand).length).to.equal(1)
+    expect(dynamodbMock.commandCalls(UpdateItemCommand).length).to.equal(1)
+  })
+
+  it("Returns null if database entry doesn't exit", async () => {
+    dynamodbMock.on(GetItemCommand).resolves({})
+
+    await expect(verifyOtp("<NONEXISTENT USER ID>", "<OTP>")).to.eventually.be.null
+    expect(dynamodbMock.commandCalls(GetItemCommand).length).to.equal(1)
+    expect(dynamodbMock.commandCalls(UpdateItemCommand).length).to.equal(0)
+  })
+})
+
+describe("dynamodb: getPlayers()", () => {
+  it("Returns players", async () => {
+    const samplePlayers: PlayerEntry[] = [
+      {
+        "display-name": "Player 1",
+        "game-code": "<GAME CODE>",
+        id: "<USER ID>"
+      },
+      {
+        "display-name": "Player 2",
+        "game-code": "<GAME CODE 2>",
+        id: "<USER ID>"
+      }
+    ]
+    dynamodbMock.on(QueryCommand).resolves({
+      Items: samplePlayers.map(p => marshall(p))
+    })
+
+    await expect(getPlayers("<USER ID>")).to.eventually.deep.equal(samplePlayers.map(p => entryToModel(p)))
+    expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(1)
+  })
+
+  it("Returns no players", async () => {
+    dynamodbMock.on(QueryCommand).resolvesOnce({})
+    await expect(getPlayers("<USER ID>")).to.eventually.deep.equal([])
+    expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(1)
+    dynamodbMock.reset()
+
+    dynamodbMock.on(QueryCommand).resolvesOnce({ Items: [] })
+    await expect(getPlayers("<USER ID>")).to.eventually.deep.equal([])
+    expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(1)
+  })
+})
+
 

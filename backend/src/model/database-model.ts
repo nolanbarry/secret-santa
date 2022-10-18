@@ -8,17 +8,17 @@ const { games, users, players, auth } = constants.tables
  *        purely as a "friendly version" to make using it in TS easier.
  */
 
-export type GameEntry = { [key in typeof games.schema[keyof typeof games.schema]]: string }
-export type GameModel = { -readonly [key in keyof typeof games.schema]: string }
+export type GameEntry = { [key in typeof games.schema[keyof typeof games.schema]]?: string }
+export type GameModel = { -readonly [key in keyof typeof games.schema]?: string }
 
-export type UserEntry = { [key in typeof users.schema[keyof typeof users.schema]]: string }
-export type UserModel = { -readonly [key in keyof typeof users.schema]: string }
+export type UserEntry = { [key in typeof users.schema[keyof typeof users.schema]]?: string }
+export type UserModel = { -readonly [key in keyof typeof users.schema]?: string }
 
-export type PlayerEntry = { [key in typeof players.schema[keyof typeof players.schema]]: string }
-export type PlayerModel = { -readonly [key in keyof typeof players.schema]: string }
+export type PlayerEntry = { [key in typeof players.schema[keyof typeof players.schema]]?: string }
+export type PlayerModel = { -readonly [key in keyof typeof players.schema]?: string }
 
-export type AuthEntry = { [key in typeof auth.schema[keyof typeof auth.schema]]: string }
-export type AuthModel = { -readonly [key in keyof typeof auth.schema]: string }
+export type AuthEntry = { [key in typeof auth.schema[keyof typeof auth.schema]]?: string }
+export type AuthModel = { -readonly [key in keyof typeof auth.schema]?: string }
 
 export type DatabaseEntry = GameEntry | UserEntry | PlayerEntry | AuthEntry
 export type DatabaseModel = GameModel | UserModel | PlayerModel | AuthModel

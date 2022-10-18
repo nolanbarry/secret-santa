@@ -1,7 +1,7 @@
 import { AttributeValue, DynamoDB } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { GameEntry, UserEntry, PlayerEntry, AuthEntry, entryToModel, GameModel, UserModel, PlayerModel, AuthModel, modelToEntry, DatabaseModel, DatabaseEntry } from "../model/database-model";
-import { HTTPError } from "../model/error";
+import { ExpectedError, HTTPError } from "../model/error";
 import { getModeOfContact, ModeOfContact } from "../model/modeofcontact";
 import constants from "../utils/constants";
 import { generateRandomString, generateUserId } from "../utils/utils";
@@ -62,17 +62,15 @@ export async function getUserIdByContactString(contactString: string) {
  * @returns An OTP. OTPs are 6-digit numeric strings, i.e. `"123456"`.
  */
 export async function login(userId: string) {
-  let otp = generateRandomString("1234567890", constants.otpLength)
+  let otp = generateRandomString(constants.otp.validCharacters, constants.otp.length)
   let expirationDate = Date.now() / 1000 + schema.auth.otpTTL
+
   // TODO: Impose a limit on the number of auth table entries a user
   // can have, replace the oldest one if the limit has been reached.
-  await ddb.putItem({
-    TableName: schema.auth.name,
-    Item: marshall({
-      [schema.auth.partitionKey]: userId,
-      [schema.auth.schema.otp]: otp,
-      [schema.auth.ttlKey]: expirationDate.toString()
-    })
+  await putAuth({
+    id: userId,
+    otp: otp,
+    expirationDate: expirationDate.toString()
   })
   return otp
 }
@@ -87,7 +85,7 @@ export async function login(userId: string) {
 export async function verifyOtp(userId: string, otp: string): Promise<string | null> {
   let auth = await getAuth(userId, otp)
   if (!auth || auth.authToken) return null
-  const authToken = generateRandomString(constants.authTokenCharacters, constants.authTokenLength)
+  const authToken = generateRandomString(constants.authToken.validCharacters, constants.authToken.length)
   await setAuthToken(auth, authToken)
   return authToken
 }
@@ -95,13 +93,13 @@ export async function verifyOtp(userId: string, otp: string): Promise<string | n
 
 /**
  * Retrieves (if possible) auth token from the auth table, then returns the associated user id. 
- * Returns null if the auth token doesn't exist. 
+ * Throws an `ExpectedError` if the token doesn't exist. 
  * @param authToken The authToken to authenticate.
  * @returns The userId, a unique random string to identify the user. 
  */
 export async function authenticate(authToken: string) {
   let auth = await getAuthByAuthToken(authToken);
-  if (!auth) return null
+  if (!auth) throw new ExpectedError(constants.strings.authTokenDne)
 
   // update expiration date of auth token
   await extendExpirationDate(auth, schema.auth.authTokenTTL)
@@ -110,7 +108,7 @@ export async function authenticate(authToken: string) {
 
 /**
  * Retrieves and returns the players associated with a specific user.
- * @param userId The id fo the user to retrieve players of.
+ * @param userId The id of the user to retrieve players of.
  * @returns An array of the `Player` objects
  */
 export async function getPlayers(userId: string): Promise<PlayerModel[]> {

@@ -68,6 +68,11 @@ const tables = {
   }
 } as const
 
+const strings = {
+  authTokenDne: "Invalid auth token",
+  otpDne: "Invalid OTP"
+}
+
 export default {
   /** CORS Headers that Lambdas must return for the data to be used by the client */
   corsHeaders: {
@@ -78,7 +83,13 @@ export default {
   /** The AWS region the lambda is being called from, i.e. `us-west-2` */
   region: process.env["AWS_REGION"] ?? "us-west-2",
   tables,
-  otpLength: 6,
-  authTokenCharacters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-0123456789$%&*",
-  authTokenLength: 24
+  otp: {
+    validCharacters: "1234567890",
+    length: 6
+  },
+  authToken: {
+    validCharacters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-0123456789$%&*",
+    length: 24,
+  },
+  strings
 } as const

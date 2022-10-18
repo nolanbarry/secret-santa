@@ -77,7 +77,7 @@ export function lambda(handler: Handler): Handler {
  * @param requiredProperties The name of the parameters expected to be in `body`
  * @returns `body`, parsed into an object.
  */
-export function validateRequestBody(body: string | null, requiredProperties: string[]): { [key: string]: unknown } {
+export function validateRequestBody(body: string | null, requiredProperties: string[]): { [key: string]: any } {
   if (!body) throw new HTTPError(400, "Request body is required");
   let parsed;
   try {
