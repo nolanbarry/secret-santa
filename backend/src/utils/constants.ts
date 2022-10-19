@@ -65,14 +65,17 @@ const tables = {
       displayName: 'display-name',
       hostName: 'host-name',
       started: 'started',
-      exchangeDate: 'exchange-date'   
+      exchangeDate: 'exchange-date'
     },
   }
 } as const
 
 const strings = {
   authTokenDne: "Invalid auth token",
-  otpDne: "Invalid OTP"
+  otpDne: "Invalid OTP",
+  gameGenerationFailed: "Failed to generate game code",
+  displayNameInvalid: "Display name contains invalid characters or is too long",
+  displayNameTaken: "Display name is taken"
 }
 
 export default {
@@ -85,17 +88,23 @@ export default {
   /** The AWS region the lambda is being called from, i.e. `us-west-2` */
   region: process.env["AWS_REGION"] ?? "us-west-2",
   tables,
-  otp: {
-    validCharacters: "1234567890",
-    length: 6
-  },
-  authToken: {
-    validCharacters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-0123456789$%&*",
-    length: 24,
-  },
-  gameCode: { // allows for 26^7 unique game codes ~= 8 billion
-    validCharacters: "ABDEFGHIJKLMNOPQRSTUVWXYZ",
-    length: 7
+  rules: {
+    otp: {
+      validCharacters: "1234567890",
+      length: 6
+    },
+    authToken: {
+      validCharacters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-0123456789$%&*",
+      length: 24,
+    },
+    gameCode: { // allows for 26^7 unique game codes ~= 8 billion
+      validCharacters: "ABDEFGHIJKLMNOPQRSTUVWXYZ",
+      length: 7
+    },
+    displayName: {
+      validCharacters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-0123456789$%&*<> ",
+      maxLength: 24
+    }
   },
   strings
 } as const

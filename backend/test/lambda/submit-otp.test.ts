@@ -3,14 +3,14 @@ import { expect } from 'chai'
 import sinon from 'sinon'
 import * as dynamodb from '../../src/services/dynamodb'
 import handler from '../../src/lambda/submit-otp'
-import { asPromise, createMockBody } from './testing-utils'
+import { asPromise, createMockBody } from '../testing-utils'
 import constants from '../../src/utils/constants'
 
-afterEach(() => {
-  sinon.restore()
-})
+describe("submit otp lambda", () => {
+  afterEach(() => {
+    sinon.restore()
+  })
 
-describe("lambda: submit-otp", () => {
   it("Returns auth token when given correct input", async () => {
     sinon.stub(dynamodb, "verifyOtp").callsFake(async (id: string, otp: string) => {
       expect(id).to.equal("<USER ID>")

@@ -3,14 +3,13 @@ import { expect } from 'chai'
 import sinon from 'sinon'
 import * as dynamodb from '../../src/services/dynamodb'
 import handler from '../../src/lambda/create-game'
-import { asPromise, createMockBody } from './testing-utils'
-import constants from '../../src/utils/constants'
+import { asPromise, createMockBody } from '../testing-utils'
 
-afterEach(() => {
-  sinon.restore()
-})
+describe("create game lambda", () => {
+  afterEach(() => {
+    sinon.restore()
+  })
 
-describe("lambda: create-game", () => {
   it("Calls create game and returns game code", async () => {
     const authenticateStub = sinon.stub(dynamodb, "authenticate").returns(asPromise("<USER ID>"))
     const createGameStub = sinon.stub(dynamodb, "createGame").returns(asPromise("<GAME CODE>"))

@@ -176,3 +176,10 @@ export function camelToKebab(camel: string) {
   return tokens.map(word => word.toLowerCase()).join('-')
 }
 
+/** Returns true if the given display name is valid. */
+export function displayNameIsValid(candidate: string) {
+  const lengthGood = candidate.length <= constants.rules.displayName.maxLength
+  const charactersGood = Array.from(candidate).every(c => constants.rules.displayName.validCharacters.includes(c))
+  return lengthGood && charactersGood
+}
+
