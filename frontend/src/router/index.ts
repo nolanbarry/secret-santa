@@ -23,9 +23,6 @@ const router = createRouter({
     {
       path: '/otp',
       name: 'otp',
-      meta: {
-        requiresAuth: true
-      },
       component: () => import('../views/OTPView.vue')
     },
     {
