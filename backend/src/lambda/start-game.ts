@@ -5,10 +5,13 @@ import { lambda, response, validateRequestBody } from '../utils/utils'
 
 /* See https://docs.aws.amazon.com/lambda/latest/dg/typescript-handler.html */
 
-const requestParameters = ['authToken', 'gameCode']
+const requestParameters = {
+  authToken: String,
+  gameCode: String,
+}
 
 async function handler(event: APIGatewayEvent, context: Context) {
-  const { authToken, gameCode, displayName } = validateRequestBody(event.body, requestParameters)
+  const { authToken, gameCode } = validateRequestBody(event.body, requestParameters)
 
   // verify authtoken, retrieve user
   // retrieve game by gameCode

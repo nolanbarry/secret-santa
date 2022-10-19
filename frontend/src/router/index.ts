@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 
 import '@/assets/scss/main.scss';
-import AuthService from '@/services/AuthService';
+import { getAuth } from '@/services/Network';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -63,12 +63,12 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
 
   if (to.matched.some(record => record.meta.requiresAuth)) {
     // this route requires auth, check if logged in
     // if not, redirect to login page.
-    if (!AuthService.getAuth()) {
+    if (!(await getAuth())) {
       sessionStorage.setItem('redirectPath', to.path);
       next({ name: 'login' })
     } else {

@@ -1,23 +1,27 @@
 <script setup lang="ts">
-import router from '@/router';
-import AuthService from '@/services/AuthService';
-import TitleLogo from '../components/TitleLogo.vue'
+    import router from '@/router';
+    import TitleLogo from '../components/TitleLogo.vue';
+    import { loginUser, login } from '@/services/Network';
 
-const login = () => {
-    AuthService.login();
-    //Go to '/defaultpath' if no redirectPath value is set
-    router.replace(sessionStorage.getItem('redirectPath') || '/');
+    const loginHandler = async () => {
+        await loginUser();
 
-    //Cleanup redirectPath
-    sessionStorage.removeItem('redirectPath');
-}
+        let data = await login();
+        console.log(data);
+
+        //Go to '/defaultpath' if no redirectPath value is set
+        router.replace(sessionStorage.getItem('redirectPath') || '/');
+
+        //Cleanup redirectPath
+        sessionStorage.removeItem('redirectPath');
+    }
 </script>
 
 <template>
     <main>
         <TitleLogo />
         <div class="button-div">
-            <button @click="login" class="button">
+            <button @click="loginHandler" class="button">
                 Login
             </button>
         </div>

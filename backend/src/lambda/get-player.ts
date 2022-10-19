@@ -5,7 +5,11 @@ import { lambda, response, validateRequestBody } from '../utils/utils'
 
 /* See https://docs.aws.amazon.com/lambda/latest/dg/typescript-handler.html */
 
-const requestParameters = ['authToken', 'gameCode', 'displayName']
+const requestParameters = {
+  authToken: String,
+  gameCode: String,
+  displayName: String
+}
 
 async function handler(event: APIGatewayEvent, context: Context) {
   const { authToken, gameCode, displayName } = validateRequestBody(event.body, requestParameters)
