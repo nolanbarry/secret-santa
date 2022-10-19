@@ -4,22 +4,26 @@
     import { loginUser, login } from '@/services/Network';
 
     const loginHandler = async () => {
+
         await loginUser();
 
         let data = await login();
         console.log(data);
 
-        //Go to '/defaultpath' if no redirectPath value is set
-        router.replace(sessionStorage.getItem('redirectPath') || '/');
-
-        //Cleanup redirectPath
-        sessionStorage.removeItem('redirectPath');
+        // Head to OTP Page to submit
+        router.push('/otp')
     }
 </script>
 
 <template>
     <main>
         <TitleLogo />
+        <div class="text-input-div">
+            <input class="text-input"
+                type="text" 
+                placeholder="Enter your Email" 
+                v-model="name" />
+        </div>
         <div class="button-div">
             <button @click="loginHandler" class="button">
                 Login
@@ -27,3 +31,15 @@
         </div>
     </main>
 </template>
+
+<style scoped lang="scss">
+
+    .text-input-div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding-bottom: 30px
+    }
+
+</style>

@@ -1,16 +1,27 @@
 <script setup lang="ts">
+    import router from '@/router';
+
+    const submitOTPHandler = async () => {
+
+        //Go to '/defaultpath' if no redirectPath value is set
+        router.push(sessionStorage.getItem('redirectPath') || '/');
+
+        //Cleanup redirectPath
+        sessionStorage.removeItem('redirectPath');
+    }
 </script>
     
 <template>
     <div class="text-input-div">
-        <input type="text" 
+        <input class="text-input"
+            type="text" 
             placeholder="Code from email" 
             v-model="name" />
     </div>
     <div class="button-div">
-        <router-link to="/" class="button">
+        <button @click="submitOTPHandler" class="button">
             Continue
-        </router-link>
+        </button>
     </div>
 </template>
 
