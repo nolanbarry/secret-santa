@@ -7,7 +7,6 @@ import constants from '../utils/constants'
 
 /* See https://docs.aws.amazon.com/lambda/latest/dg/typescript-handler.html */
 
-// const requestParameters = ['authToken', 'gameName', 'hostDisplayName', 'exchangeDate']
 const requestParameters = {
   authToken: String,
   gameName: String,
