@@ -78,7 +78,9 @@ const strings = {
   displayNameTaken: "Display name is taken",
   gameHasStarted: "The exchange has already started",
   noAccessToGame: "User does not have access to game",
-  gameDne: (gameCode: string) => `Game ${gameCode} does not exist`
+  noAccessToPlayer: "User does not have access to player",
+  gameDne: (gameCode: string) => `Game ${gameCode} does not exist`,
+  playerDne: (gameCode: string, displayName: string) => `Player ${displayName} in does not exist in ${gameCode}`
 }
 
 export default {
