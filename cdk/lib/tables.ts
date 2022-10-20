@@ -1,4 +1,4 @@
-import { Attribute, AttributeType, Table } from "aws-cdk-lib/aws-dynamodb"
+import { Attribute, AttributeType, BillingMode, Table } from "aws-cdk-lib/aws-dynamodb"
 import { SecretSantaStack } from "./secret-santa-stack"
 
 export type Tables = {
@@ -100,7 +100,8 @@ export function createTables(scope: SecretSantaStack): Tables {
       tableName: config.name,
       partitionKey: { name: config.partitionKey, type: AttributeType.STRING },
       ...sortKey,
-      ...ttl
+      ...ttl,
+      billingMode: BillingMode.PAY_PER_REQUEST
     })
 
     // add indexes
@@ -111,6 +112,7 @@ export function createTables(scope: SecretSantaStack): Tables {
         indexName: globalIndex.name,
         partitionKey: { name: globalIndex.partitionKey, type: AttributeType.STRING },
         ...sortKey,
+        billingMode: BillingMode.PAY_PER_REQUEST
       })
     }
   }
