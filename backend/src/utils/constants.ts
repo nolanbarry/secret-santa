@@ -75,7 +75,8 @@ const strings = {
   otpDne: "Invalid OTP",
   gameGenerationFailed: "Failed to generate game code",
   displayNameInvalid: "Display name contains invalid characters or is too long",
-  displayNameTaken: "Display name is taken"
+  displayNameTaken: "Display name is taken",
+  gameHasStarted: "The exchange has already started"
 }
 
 export default {

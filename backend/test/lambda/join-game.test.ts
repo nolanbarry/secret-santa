@@ -48,6 +48,23 @@ describe("join game lambda", () => {
     expect(response.statusCode).to.equal(400)
   })
 
+  it("Throws error when game is in progress already", async () => {
+    sinon.stub(dynamodb, "getGame").returns(asPromise({ ...game, started: true }))
+    sinon.stub(dynamodb, "displayNameTaken").returns(asPromise(false))
+
+    const response = await handler(...createMockBody({
+      authToken: "<AUTH TOKEN>",
+      gameCode: "<GAME CODE>",
+      displayName: "<DISPLAY NAME>"
+    }))
+
+    const body = JSON.parse(response.body)
+
+    expect(body.message).to.equal(constants.strings.gameHasStarted)
+    expect(body.success).to.be.false
+    expect(response.statusCode).to.equal(200)
+  })
+
   it("Throws expected error when display name is invalid", async () => {
     sinon.stub(dynamodb, "getGame").returns(asPromise(game))
     sinon.stub(dynamodb, "displayNameTaken").returns(asPromise(false))
@@ -59,7 +76,7 @@ describe("join game lambda", () => {
     }))
 
     const body = JSON.parse(response.body)
-    
+
     expect(body.message).to.equal(constants.strings.displayNameInvalid)
     expect(body.success).to.be.false
     expect(response.statusCode).to.equal(200)
