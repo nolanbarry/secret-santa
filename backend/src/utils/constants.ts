@@ -76,7 +76,8 @@ const strings = {
   gameGenerationFailed: "Failed to generate game code",
   displayNameInvalid: "Display name contains invalid characters or is too long",
   displayNameTaken: "Display name is taken",
-  gameHasStarted: "The exchange has already started"
+  gameHasStarted: "The exchange has already started",
+  noAccessToGame: "User does not have access to game"
 }
 
 export default {

@@ -22,7 +22,7 @@ describe("create game lambda", () => {
     }))
     const body = JSON.parse(response.body)
     expect(body.gameCode).to.equal("<GAME CODE>")
-    authenticateStub.calledOnceWith("<AUTH TOKEN>")
-    createGameStub.calledOnceWith("<GAME NAME>", 8, "<USER ID>", "<HOST DISPLAY NAME>")
+    expect(authenticateStub.calledOnceWith("<AUTH TOKEN>")).to.be.true
+    expect(createGameStub.calledOnceWith("<GAME NAME>", 8, "<USER ID>", "<HOST DISPLAY NAME>")).to.be.true
   })
 })

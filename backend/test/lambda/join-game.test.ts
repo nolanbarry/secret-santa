@@ -10,9 +10,10 @@ const game = { gameCode: "", code: "", displayName: "", hostName: "", started: f
 
 describe("join game lambda", () => {
 
+  let authenticateStub: sinon.SinonStub;
   beforeEach(() => {
     sinon.stub(dynamodb, "putPlayer").returns(asPromise(undefined))
-    sinon.stub(dynamodb, "authenticate").returns(asPromise("<USER ID>"))
+    authenticateStub = sinon.stub(dynamodb, "authenticate").returns(asPromise("<USER ID>"))
   })
 
   afterEach(() => {
@@ -33,6 +34,8 @@ describe("join game lambda", () => {
     expect(response.statusCode).to.equal(200)
     expect(body.message).to.be.undefined
     expect(body.success).to.be.true
+
+    expect(authenticateStub.calledOnceWith("<AUTH TOKEN>")).to.be.true
   })
 
   it("Throws error when game doesn't exist", async () => {

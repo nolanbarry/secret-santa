@@ -96,7 +96,7 @@ export async function authenticate(authToken: string): Promise<string> {
 
 /**
  * Retrieves and returns the players associated with a specific user.
- * @param userId The id of the user to retrieve players of.
+ * @param userId The id of the user to retrieve the players of.
  * @returns An array of the `Player` objects
  */
 export async function getPlayersForUser(userId: string): Promise<PlayerModel[]> {
