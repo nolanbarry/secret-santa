@@ -77,7 +77,8 @@ const strings = {
   displayNameInvalid: "Display name contains invalid characters or is too long",
   displayNameTaken: "Display name is taken",
   gameHasStarted: "The exchange has already started",
-  noAccessToGame: "User does not have access to game"
+  noAccessToGame: "User does not have access to game",
+  gameDne: (gameCode: string) => `Game ${gameCode} does not exist`
 }
 
 export default {

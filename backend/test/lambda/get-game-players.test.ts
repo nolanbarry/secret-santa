@@ -30,20 +30,7 @@ describe("get game players lambda", () => {
   ]
 
   it("retrieves and returns players when user is authorized", async () => {
-    const userPlayers = [
-      {
-        id: "<USER ID>",
-        displayName: "Foo",
-        gameCode: "<GAME CODE>"
-      },
-      {
-        id: "<USER ID>",
-        displayName: "Bar",
-        gameCode: "<OTHER GAME CODE>"
-      }
-    ]
     const authenticateStub = sinon.stub(dynamodb, "authenticate").returns(asPromise("<USER ID>"))
-    const getPlayersForUserStub = sinon.stub(dynamodb, "getPlayersForUser").returns(asPromise(userPlayers))
     const getPlayersForGameStub = sinon.stub(dynamodb, "getPlayersInGame").returns(asPromise(gamePlayers))
 
     const response = await handler(...createMockBody({
@@ -57,20 +44,11 @@ describe("get game players lambda", () => {
     expect(body.players).to.deep.equal(gamePlayers)
 
     expect(authenticateStub.calledOnceWith("<AUTH TOKEN>")).to.be.true
-    expect(getPlayersForUserStub.calledOnceWith("<USER ID>"))
     expect(getPlayersForGameStub.calledOnceWith("<GAME CODE>"))
   })
 
   it("rejects request when user doesn't have a player in the game", async () => {
-    const userPlayers = [
-      {
-        id: "<USER ID>",
-        displayName: "Bar",
-        gameCode: "<OTHER GAME CODE>"
-      }
-    ]
-    const authenticateStub = sinon.stub(dynamodb, "authenticate").returns(asPromise("<USER ID>"))
-    const getPlayersForUserStub = sinon.stub(dynamodb, "getPlayersForUser").returns(asPromise(userPlayers))
+    const authenticateStub = sinon.stub(dynamodb, "authenticate").returns(asPromise("<USER ID NOT IN GAME>"))
     const getPlayersForGameStub = sinon.stub(dynamodb, "getPlayersInGame").returns(asPromise(gamePlayers))
 
     const response = await handler(...createMockBody({
@@ -84,7 +62,6 @@ describe("get game players lambda", () => {
     expect(body.message).to.equal(constants.strings.noAccessToGame)
 
     expect(authenticateStub.calledOnceWith("<AUTH TOKEN>")).to.be.true
-    expect(getPlayersForUserStub.calledOnceWith("<USER ID>"))
-    expect(getPlayersForGameStub.called).to.be.false
+    expect(getPlayersForGameStub.calledOnceWith("<GAME CODE>"))
   })
 })

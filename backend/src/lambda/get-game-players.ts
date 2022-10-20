@@ -18,15 +18,13 @@ async function handler(event: APIGatewayEvent, context: Context) {
 
   const userId = await authenticate(authToken)
 
-  const userPlayers = await getPlayersForUser(userId)
+  const gamePlayers = await getPlayersInGame(gameCode)
 
   // user must have at least one player that is participating in a game to get its players
-  if (!userPlayers.some(player => player.gameCode == gameCode))
+  if (!gamePlayers.some(player => player.id == userId))
     throw new HTTPError(400, constants.strings.noAccessToGame)
-  
-  const players = await getPlayersInGame(gameCode)
 
-  return response(200, { players })
+  return response(200, { players: gamePlayers })
 };
 
 export default lambda(handler)

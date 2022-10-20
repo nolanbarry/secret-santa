@@ -58,7 +58,7 @@ export async function login(userId: string) {
   await putAuth({
     id: userId,
     otp: otp,
-    expirationDate: expirationDate.toString()
+    expirationDate: expirationDate
   })
   return otp
 }
@@ -174,7 +174,7 @@ export async function createGame(gameName: string, exchangeDate: number, hostId:
       displayName: gameName,
       hostName: hostDisplayName,
       started: false,
-      exchangeDate: exchangeDate.toString()
+      exchangeDate: exchangeDate
     }),
     putPlayer({
       gameCode: gameCode,
@@ -296,9 +296,9 @@ async function extendExpirationDate(authModel: AuthModel, extensionTime: number)
     Key: getKey(schema.auth, authEntry),
     UpdateExpression: "#ttl = :new-expiration",
     ExpressionAttributeNames: { '#ttl': schema.auth.ttlKey },
-    ExpressionAttributeValues: marshall({ ':new-expiration': newExpirationDate.toString() })
+    ExpressionAttributeValues: marshall({ ':new-expiration': newExpirationDate })
   })
-  authModel.expirationDate = newExpirationDate.toString()
+  authModel.expirationDate = newExpirationDate
 }
 
 /**

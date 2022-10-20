@@ -22,7 +22,7 @@ async function handler(event: APIGatewayEvent, context: Context) {
   // validate game exists, display name is valid, and display name isn't taken
   const game = await getGame(gameCode)
   if (!game)
-    throw new HTTPError(400, `Game ${gameCode} doesn't exist`)
+    throw new HTTPError(400, constants.strings.gameDne(gameCode))
 
   if (game.started)
     throw new ExpectedError(constants.strings.gameHasStarted)
