@@ -3,18 +3,13 @@
     
 <template>
     <div class="text-input-div">
-        <p>Enter exchange code:</p>
         <input type="text" 
-            placeholder="Exchange code" 
-            v-model="name" />
-        <p>Enter your name:</p>
-        <input type="text" 
-            placeholder="Your name" 
+            placeholder="Code from email" 
             v-model="name" />
     </div>
     <div class="button-div">
         <router-link to="/" class="button">
-            Join Exchange
+            Continue
         </router-link>
     </div>
 </template>

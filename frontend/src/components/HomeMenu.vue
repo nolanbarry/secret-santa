@@ -11,7 +11,7 @@
             Join a Game
         </router-link>
 
-        <router-link to="/createExchange" class="button">
+        <router-link to="/chooseExchange" class="button">
             View my Games
         </router-link>
     </div>
