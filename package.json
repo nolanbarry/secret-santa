@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "vue-englishdatepicker": "^0.1.1",
+    "vuejs-datepicker": "^1.6.2"
+  }
+}

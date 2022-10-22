@@ -14,13 +14,27 @@
     </div>
     <div class="assignment-div">
         <p class="assignment">
-            Your Assignment: <em>     Pending</em>
+            Your Assignment: <em id="emphasized">Pending</em>
         </p>
     </div>
     <div class="player-list-div">
         <h2 class="player-list">
             Player List:
         </h2>
+    </div>
+    <div class="row">
+        <div class="column">
+            <p>Player 1</p>
+            <p>Player 2</p>
+            <p>Player 3</p>
+            <p>Player 4</p>
+        </div>
+        <div class="column">
+            <p>Player 5</p>
+            <p>Player 6</p>
+            <p>Player 7</p>
+            <p>Player 8</p>
+        </div>
     </div>
 </template>
 
@@ -52,7 +66,7 @@
         text-decoration: none;
         color: black;
         font-family: 'Inter' sans-serif;
-        font-size: 1.5rem;
+        font-size: 1.7rem;
         justify-content: center;
     }
 
@@ -81,20 +95,33 @@
         justify-content: center;
     }
 
+    #emphasized {
+        padding-left: 12px
+    }
+
     .player-list-wrapper {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding-bottom: 30px
+        padding: 30px
     }
 
     .player-list{
+        padding-top: 30px;
         text-decoration: none;
         color: black;
         font-family: 'Inter' sans-serif;
-        font-size: 1.3rem;
+        font-size: 1.5rem;
         text-align: center;
+        justify-content: center;
+    }
+
+    .column{
+        text-align: center;
+        color: black;
+        font-family: 'Inter' sans-serif;
+        font-size: 1.3rem;
         justify-content: center;
     }
 </style>
