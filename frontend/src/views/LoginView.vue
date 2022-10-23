@@ -34,18 +34,13 @@ const loginHandler = async () => {
 </template>
 
 <style scoped lang="scss">
-.text-input-div {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding-bottom: 30px
-}
 
-.loading-bar-div {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
+    .text-input-div {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding-bottom: 30px
+    }
+
 </style>
