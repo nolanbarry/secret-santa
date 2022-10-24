@@ -24,7 +24,6 @@
         Create Exchange
       </router-link>
     </div>
-    <!-- <ChooseDate/>  -->
   </main>
 </template>
 
