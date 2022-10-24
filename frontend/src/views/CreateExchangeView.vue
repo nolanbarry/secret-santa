@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  // import ChooseDate from '../components/ChooseDate.vue'
+  import ChooseDate from '../components/ChooseDate.vue'
 </script>
 
 <template>
@@ -17,9 +17,7 @@
     </div>
     <div class="date-picker-div">
       <p>Choose a date for your exchange:</p>
-      <!-- <vue-englishdatepicker placeholder="YYYY-MM-DD" /> -->
-      <!-- <Datepicker :format="customDate" :value="time" :inline="true"></Datepicker> -->
-      <input type="text" placeholder="Exchange date"  />
+      <ChooseDate/>
     </div>
     <div class="button-div">
       <router-link to="/" class="button">

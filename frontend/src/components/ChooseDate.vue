@@ -1,31 +1,21 @@
+<script setup lang="ts">
+</script>
+
 <template>
-  <div class = "column:grid-7 center:grid-items">
-    <div v-for="cal in calendar" :key="cal" class="padding-2">({cal})</div>
+  <div class="date-picker-div">
+    <input type="date" class="date-picker" />
   </div>
 </template>
 
+<style>
+.date-picker {
+  border: none;
+  padding: 1.2em;
+  margin-top: 1em;
 
-<script>
-import {defineComponent, ref} from 'vue'
-import {$date as useDate} from '../assets/alga.min.js'
+}
 
-export default defineComponent({
-  name: 'ChooseDate',
-  setup() {
-    const year = ref(0)
-    const month = ref(0)
-
-    const dateNow = new Date()
-    year.value = dateNow.getFullYear()
-    month.value = Number(dateNow.getMonth())
-
-    const calendar = useDate.calendar(year.value, month.value)
-
-    return {
-      calendar
-    }
-
-  }
-})
-</script>
-
+.date-picker::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+</style>
