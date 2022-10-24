@@ -9,15 +9,15 @@
       </header>
     </div>
     <div class="choose-button-div">
-      <router-link to="/userView" class="choose-button">
+      <router-link to="/user-view" class="choose-button">
         Exchange Name: Person Name
       </router-link>
 
-      <router-link to="/userView" class="choose-button">
+      <router-link to="/user-view" class="choose-button">
         Exhchange Name: Person Name
       </router-link>
 
-      <router-link to="/userView" class="choose-button">
+      <router-link to="/user-view" class="choose-button">
         Exchange Name: Person Name
       </router-link>
     </div>

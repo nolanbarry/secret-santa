@@ -10,12 +10,12 @@
     </div>
     <div class="text-input-div">
       <p>Enter exchange code:</p>
-      <input type="text" placeholder="Exchange code" />
+      <input type="text" class="text-input" placeholder="Exchange code" />
       <p>Enter your name:</p>
-      <input type="text" placeholder="Your name" />
+      <input type="text" class="text-input" placeholder="Your name" />
     </div>
     <div class="button-div">
-      <router-link to="/" class="button">
+      <router-link to="/user-view" class="button">
         Join Exchange
       </router-link>
     </div>
@@ -44,6 +44,5 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-bottom: 30px
 }
 </style>

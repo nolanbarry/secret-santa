@@ -12,7 +12,6 @@
   border: none;
   padding: 1.2em;
   margin-top: 1em;
-
 }
 
 .date-picker::-webkit-calendar-picker-indicator {

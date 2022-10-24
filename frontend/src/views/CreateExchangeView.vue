@@ -20,7 +20,7 @@
       <ChooseDate/>
     </div>
     <div class="button-div">
-      <router-link to="/" class="button">
+      <router-link to="/user-view" class="button">
         Create Exchange
       </router-link>
     </div>

@@ -2,24 +2,27 @@
 </script>
 
 <template>
-  <main>
+  <main class="content-wrapper">
     <div class="title-wrapper">
-      <header class="title">
-        Exchange Name
+      <header class="exchange-title">
+        Smith Family Gift Exchange
       </header>
     </div>
     <div class="exchange-date-wrapper">
       <h1 class="exchange-date">
-        Exchange Date
+        12/25/22
       </h1>
     </div>
     <div class="assignment-div">
+      <p class="assignment-label">
+        Your Assignment: 
+      </p>
       <p class="assignment">
-        Your Assignment: <em id="emphasized">Pending</em>
+        <em>Pending</em>
       </p>
     </div>
     <div class="player-list-div">
-      <h2 class="player-list">
+      <h2 class="player-list-label">
         Player List:
       </h2>
     </div>
@@ -41,13 +44,20 @@
 </template>
 
 <style scoped lang="scss">
-.title {
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.exchange-title {
   font-family: 'Coiny';
   font-style: normal;
   font-weight: 400;
-  font-size: 4rem;
+  font-size: 3rem;
   color: #FFFFFF;
-  -webkit-text-stroke: 0.27rem #A74141;
+  -webkit-text-stroke: 0.21rem #A74141;
   flex-wrap: wrap;
 }
 
@@ -68,32 +78,40 @@
   text-decoration: none;
   color: black;
   font-family: 'Inter' sans-serif;
-  font-size: 1.7rem;
+  font-size: 1.5rem;
   justify-content: center;
+  // font-weight: bold;
 }
 
 .assignment-div {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: space-evenly;
+  
+  margin-top: 1rem;
+
+  border: none;
+  background-color: #A74141;
+  // box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 18px;
+  width: 25em;
+  padding: 0.3em;
+}
+
+.assignment-label {
+  text-decoration: none;
+  color: white;
+  font-family: 'Inter' sans-serif;
+  font-size: 1.2rem;
   justify-content: center;
 }
 
 .assignment {
-  margin-top: 2rem;
-  display: flex;
-
-  border: none;
-  background-color: #A74141;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  border-radius: 40px;
-  width: 20em;
-  padding: 1em;
-
   text-decoration: none;
   color: white;
   font-family: 'Inter' sans-serif;
-  font-size: 1rem;
+  font-size: 1.2rem;
   justify-content: center;
 }
 
@@ -109,14 +127,17 @@
   padding: 30px
 }
 
-.player-list {
+.player-list-label {
   padding-top: 30px;
   text-decoration: none;
   color: black;
-  font-family: 'Inter' sans-serif;
+  // font-family: 'Inter' sans-serif;
+  font-family: 'Coiny';
+
   font-size: 1.5rem;
   text-align: center;
   justify-content: center;
+  margin-bottom: 0.5rem;
 }
 
 .column {
@@ -125,5 +146,12 @@
   font-family: 'Inter' sans-serif;
   font-size: 1.3rem;
   justify-content: center;
+  margin-right: 5rem;
+  margin-left: 5rem;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
 }
 </style>
