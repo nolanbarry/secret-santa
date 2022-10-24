@@ -244,7 +244,7 @@ async function indexGetter<TableEntryType extends DatabaseModel>(tableName: stri
 export const getGame = (gameCode: string) => getter<GameModel>(schema.games, gameCode)
 
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
-const getUser = (userId: string) => getter<UserModel>(schema.users, userId)
+export const getUser = (userId: string) => getter<UserModel>(schema.users, userId)
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
 const getUserByPhoneNumber = (phoneNumber: string) => indexGetter<UserModel>(schema.users.name, schema.users.indexes.byPhoneNumber, phoneNumber)
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
