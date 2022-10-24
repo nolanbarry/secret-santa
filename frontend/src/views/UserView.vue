@@ -21,6 +21,11 @@
         <em>Pending</em>
       </p>
     </div>
+    <div>
+      <h2>
+        Join Code: ABC123
+      </h2>
+    </div>
     <div class="player-list-div">
       <h2 class="player-list-label">
         Player List:
@@ -90,6 +95,7 @@
   justify-content: space-evenly;
   
   margin-top: 1rem;
+  margin-bottom: 1rem;
 
   border: none;
   background-color: #A74141;

@@ -10,15 +10,15 @@
     </div>
     <div class="choose-button-div">
       <router-link to="/user-view" class="choose-button">
-        Exchange Name: Person Name
+        Smith Family Gift Exchange: Johnny
       </router-link>
 
       <router-link to="/user-view" class="choose-button">
-        Exhchange Name: Person Name
+        Work Secret Santa: John Smith
       </router-link>
 
       <router-link to="/user-view" class="choose-button">
-        Exchange Name: Person Name
+        Group Project Gift Exchange: John
       </router-link>
     </div>
   </main>

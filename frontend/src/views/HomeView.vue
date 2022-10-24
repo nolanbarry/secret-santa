@@ -7,15 +7,15 @@ import TitleLogo from '../components/TitleLogo.vue'
     <TitleLogo />
     <div class="button-div">
       <router-link to="/create-exchange" class="button">
-        Create a new Game
+        Create a new Exchange
       </router-link>
 
       <router-link to="/join-exchange" class="button">
-        Join a Game
+        Join an Exchange
       </router-link>
 
       <router-link to="/choose-exchange" class="button">
-        View my Games
+        View my Exchanges
       </router-link>
     </div>
   </main>

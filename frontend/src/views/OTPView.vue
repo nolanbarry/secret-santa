@@ -19,6 +19,7 @@ const submitOTPHandler = async () => {
   <main>
     <TitleLogo />
     <div class="text-input-div">
+      <p class="input-label">Check your email for a one-time login code</p>
       <input class="text-input" type="text" placeholder="Code from email" />
     </div>
     <div class="button-div">
@@ -37,5 +38,9 @@ const submitOTPHandler = async () => {
   align-items: center;
   justify-content: center;
   padding-bottom: 30px
+}
+
+.input-label {
+  margin-bottom: 20px;
 }
 </style>
