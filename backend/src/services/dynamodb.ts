@@ -186,6 +186,23 @@ export async function createGame(gameName: string, exchangeDate: number, hostId:
   return gameCode
 }
 
+/**
+ * Cleans up all the data related to a game by deleting the `Game` and
+ * all associated `Player` objects from the database.
+ * @param gameCode The code of the game
+ */
+export async function endGame(gameCode: string) {
+  const players = await getPlayersInGame(gameCode)
+
+  // initate all requests BEFORE awaiting any so that an attempt will be made to delete everything
+  // regardless of an error returned by any deletion
+  const deleteGamePromise = deleteGame(gameCode) 
+  const deletePlayerPromises = players.map(player => deletePlayer(gameCode, player.displayName))
+
+  for (let promise of [deleteGamePromise, ...deletePlayerPromises])
+    await promise
+}
+
 /* HELPER FUNCTIONS */
 
 /* GETTERS */

@@ -80,7 +80,9 @@ const strings = {
   noAccessToGame: "User does not have access to game",
   noAccessToPlayer: "User does not have access to player",
   gameDne: (gameCode: string) => `Game ${gameCode} does not exist`,
-  playerDne: (gameCode: string, displayName: string) => `Player ${displayName} in does not exist in ${gameCode}`
+  playerDne: (gameCode: string, displayName: string) => `Player ${displayName} in does not exist in ${gameCode}`,
+  authorizedUserDne: 'Authorized user does not exist',
+  userIsNotHost: 'Insufficient permissions to perform action'
 }
 
 export default {

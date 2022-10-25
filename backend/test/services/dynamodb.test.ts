@@ -3,14 +3,14 @@ import { use, expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import sinon from 'sinon'
 import { AwsStub, mockClient } from 'aws-sdk-client-mock'
-import { DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
+import { DeleteItemCommand, DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
 import { marshall } from '@aws-sdk/util-dynamodb';
 import * as modeOfContact from '../../src/model/mode-of-contact'
 import * as utils from '../../src/utils/utils'
 import constants from '../../src/utils/constants'
 import { ExpectedError, HTTPError } from '../../src/model/error'
 import { AuthEntry, entryToModel, PlayerEntry } from '../../src/model/database-model'
-import { authenticate, createGame, displayNameTaken, getPlayersForUser, getPlayersInGame, getUserIdByContactString, login, verifyOtp } from '../../src/services/dynamodb'
+import { authenticate, createGame, displayNameTaken, getPlayersForUser, getPlayersInGame, getUserIdByContactString, login, verifyOtp, endGame } from '../../src/services/dynamodb'
 
 /*
  * Helpful Documentation:
@@ -230,14 +230,55 @@ describe("dynamodb:", () => {
         ]
       })
 
-    await expect(displayNameTaken('code', 'Sean Spencer')).to.eventually.be.true
-    await expect(displayNameTaken('code', 'carlton lassiter')).to.eventually.be.true
-    await expect(displayNameTaken('code', 'BURTON Guster')).to.eventually.be.true
+      await expect(displayNameTaken('code', 'Sean Spencer')).to.eventually.be.true
+      await expect(displayNameTaken('code', 'carlton lassiter')).to.eventually.be.true
+      await expect(displayNameTaken('code', 'BURTON Guster')).to.eventually.be.true
 
-    await expect(displayNameTaken('code', 'gus')).to.eventually.be.false
-    await expect(displayNameTaken('code', "juliet o'hara")).to.eventually.be.false
+      await expect(displayNameTaken('code', 'gus')).to.eventually.be.false
+      await expect(displayNameTaken('code', "juliet o'hara")).to.eventually.be.false
+    })
   })
-})
 
+  describe("endGame()", () => {
+    it("deletes game and players", async () => {
+      dynamodbMock.on(QueryCommand).resolves({
+        Items: [
+          marshall({
+            id: '<USER ID>',
+            'game-code': '<GAME CODE>',
+            'display-name': '<DISPLAY NAME>',
+          }),
+          marshall({
+            id: '<USER ID 2>',
+            'game-code': '<GAME CODE>',
+            'display-name': '<DISPLAY NAME 2>',
+          })
+        ]
+      })
 
+      await endGame('<GAME CODE>')
+      expect(dynamodbMock.commandCalls(DeleteItemCommand).length).to.equal(3)
+    })
+
+    it("deletes game and players even when an error is thrown", async () => {
+      dynamodbMock.on(QueryCommand).resolves({
+        Items: [
+          marshall({
+            id: '<USER ID>',
+            'game-code': '<GAME CODE>',
+            'display-name': '<DISPLAY NAME>',
+          }),
+          marshall({
+            id: '<USER ID 2>',
+            'game-code': '<GAME CODE>',
+            'display-name': '<DISPLAY NAME 2>',
+          })
+        ]
+      })
+      dynamodbMock.on(DeleteItemCommand).rejectsOnce("error")
+
+      await expect(endGame('<GAME CODE>')).to.eventually.be.rejectedWith("error")
+      expect(dynamodbMock.commandCalls(DeleteItemCommand).length).to.equal(3)
+    })
+  })
 })
