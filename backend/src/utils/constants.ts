@@ -72,7 +72,8 @@ const tables = {
 
 const strings = {
   authTokenDne: "Invalid auth token",
-  otpDne: "Invalid OTP"
+  otpDne: "Invalid OTP",
+  startGameDne: "Too few players"
 }
 
 export default {

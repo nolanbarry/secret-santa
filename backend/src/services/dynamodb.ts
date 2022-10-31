@@ -116,6 +116,28 @@ export async function getPlayers(userId: string): Promise<PlayerModel[]> {
   return players ?? [];
 }
 
+/**
+ * Retrieves and returns the players associated with a specific game.
+ * @param userId The id of the user to retrieve players of.
+ * @returns An array of the `Player` objects
+ */
+ export async function getPlayersByGame(gameCode: string): Promise<PlayerModel[]> {
+  // TODO: Instead of a raw query, this should be querying on an index for partitioning by user id.
+  const response = await ddb.query({
+    KeyConditionExpression: '#id = :id',
+    ExpressionAttributeNames: {
+      '#id': schema.players.schema.gameCode
+    },
+    ExpressionAttributeValues: marshall({
+      ':id': gameCode
+    }),
+    TableName: schema.players.name,
+  })
+  let players = response.Items?.map(item => entryToModel(unmarshall(item) as PlayerEntry) as PlayerModel);
+
+  return players ?? [];
+}
+
 
 /**
  * Creates a Game with the given display name, then creates a Player object for the host. Returns the game
@@ -213,10 +235,10 @@ async function indexGetter<TableEntryType extends DatabaseModel>(tableName: stri
 }
 
 /** Retrieve a game by its gameCode. Returns `null` if no game exists with that game code. */
-const getGame = (gameCode: string) => getter<GameModel>(schema.games, gameCode)
+export const getGame = (gameCode: string) => getter<GameModel>(schema.games, gameCode)
 
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
-const getUser = (userId: string) => getter<UserModel>(schema.users, userId)
+export const getUser = (userId: string) => getter<UserModel>(schema.users, userId)
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
 const getUserByPhoneNumber = (phoneNumber: string) => indexGetter<UserModel>(schema.users.name, schema.users.indexes.byPhoneNumber, phoneNumber)
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
@@ -276,6 +298,28 @@ async function setAuthToken(authModel: AuthModel, token: string) {
     UpdateExpression: "#token = :new-token",
     ExpressionAttributeNames: { '#token': schema.auth.schema.authToken },
     ExpressionAttributeValues: marshall({ ':new-token': token })
+  })
+}
+
+export async function setPlayerAssignment(playerModel: PlayerModel, assigned_to: string) {
+  const playerEntry = modelToEntry(playerModel)
+  await ddb.updateItem({
+    TableName: schema.players.name,
+    Key: getKey(schema.players, playerEntry),
+    UpdateExpression: "#assigned-to = :new-assigned-to",
+    ExpressionAttributeNames: { '#assigned-to': schema.players.schema.assignedTo },
+    ExpressionAttributeValues: marshall({ ':new-assigned-to': assigned_to })
+  })
+}
+
+export async function startGame(gameModel: GameModel) {
+  const gameEntry = modelToEntry(gameModel)
+  await ddb.updateItem({
+    TableName: schema.games.name,
+    Key: getKey(schema.games, gameEntry),
+    UpdateExpression: "#started = :new-started",
+    ExpressionAttributeNames: { '#started': schema.games.schema.started },
+    ExpressionAttributeValues: marshall({ ':started': true })
   })
 }
 
