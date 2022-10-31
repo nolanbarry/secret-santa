@@ -11,7 +11,7 @@
             Exhchange Name: Person Name
         </router-link>
 
-        <router-link to="/userView" class="choose-button">
+        <router-link to="/hostView" class="choose-button">
             Exchange Name: Person Name
         </router-link>
     </div>
