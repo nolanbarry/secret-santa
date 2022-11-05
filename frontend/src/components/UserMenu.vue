@@ -123,5 +123,12 @@
         font-family: 'Inter' sans-serif;
         font-size: 1.3rem;
         justify-content: center;
+        padding: 1rem;
     }
+
+    .row {
+      display: flex;
+      vertical-align: middle;
+      justify-content: center;
+    } 
 </style>
