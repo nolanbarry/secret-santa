@@ -1,4 +1,4 @@
-import { AttributeValue, DynamoDB } from "@aws-sdk/client-dynamodb";
+import { AttributeValue, DynamoDB, QueryCommandOutput } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { GameEntry, UserEntry, PlayerEntry, AuthEntry, entryToModel, GameModel, UserModel, PlayerModel, AuthModel, modelToEntry, DatabaseModel, DatabaseEntry } from "../model/database-model";
 import { ExpectedError, HTTPError } from "../model/error";
@@ -32,8 +32,8 @@ export async function getUserIdByContactString(contactString: string) {
   // otherwise create the user and return their new id
   const id = generateUserId()
   const contactStringKey = (
-    modeOfContact == ModeOfContact.Email ? 
-      schema.users.indexes.byEmail : 
+    modeOfContact == ModeOfContact.Email ?
+      schema.users.indexes.byEmail :
       schema.users.indexes.byPhoneNumber
   ).partitionKey
   await putUser({
@@ -50,7 +50,7 @@ export async function getUserIdByContactString(contactString: string) {
  * @returns An OTP. OTPs are 6-digit numeric strings, i.e. `"123456"`.
  */
 export async function login(userId: string) {
-  let otp = generateRandomString(constants.otp.validCharacters, constants.otp.length)
+  let otp = generateRandomString(constants.rules.otp.validCharacters, constants.rules.otp.length)
   let expirationDate = Date.now() / 1000 + schema.auth.otpTTL
 
   // TODO: Impose a limit on the number of auth table entries a user
@@ -58,7 +58,7 @@ export async function login(userId: string) {
   await putAuth({
     id: userId,
     otp: otp,
-    expirationDate: expirationDate.toString()
+    expirationDate: expirationDate
   })
   return otp
 }
@@ -73,7 +73,7 @@ export async function login(userId: string) {
 export async function verifyOtp(userId: string, otp: string): Promise<string | null> {
   let auth = await getAuth(userId, otp)
   if (!auth || auth.authToken) return null
-  const authToken = generateRandomString(constants.authToken.validCharacters, constants.authToken.length)
+  const authToken = generateRandomString(constants.rules.authToken.validCharacters, constants.rules.authToken.length)
   await setAuthToken(auth, authToken)
   return authToken
 }
@@ -96,11 +96,11 @@ export async function authenticate(authToken: string): Promise<string> {
 
 /**
  * Retrieves and returns the players associated with a specific user.
- * @param userId The id of the user to retrieve players of.
+ * @param userId The id of the user to retrieve the players of.
  * @returns An array of the `Player` objects
  */
-export async function getPlayers(userId: string): Promise<PlayerModel[]> {
-  // TODO: Instead of a raw query, this should be querying on an index for partitioning by user id.
+export async function getPlayersForUser(userId: string): Promise<PlayerModel[]> {
+  // TODO: Instead of a raw query, this should be querying on an index that partitions by user id.
   const response = await ddb.query({
     KeyConditionExpression: '#id = :id',
     ExpressionAttributeNames: {
@@ -111,11 +111,39 @@ export async function getPlayers(userId: string): Promise<PlayerModel[]> {
     }),
     TableName: schema.players.name,
   })
-  let players = response.Items?.map(item => entryToModel(unmarshall(item) as PlayerEntry) as PlayerModel);
-
-  return players ?? [];
+  return mapQueryResult(response)
 }
 
+/**
+ * Retrieves a list of players that are in a game.
+ * @param gameCode The code of the game. Case sensitive.
+ * @returns A list of PlayerModel objects.
+ */
+export async function getPlayersInGame(gameCode: string): Promise<PlayerModel[]> {
+  const response = await ddb.query({
+    TableName: schema.players.name,
+    KeyConditionExpression: '#gameCode = :gameCode',
+    ExpressionAttributeNames: {
+      '#gameCode': schema.players.schema.gameCode
+    },
+    ExpressionAttributeValues: marshall({
+      ':gameCode': gameCode
+    })
+  })
+  return mapQueryResult(response)
+}
+
+/**
+ * Checks to see if a player with the given display name already exists in the game. Case-insensitive.
+ * For a case-sensitive version, use `getPlayer`.
+ * @param gameCode The game to check in
+ * @param displayName The display name to check for
+ * @returns True if a player already exists with that display name.
+ */
+export async function displayNameTaken(gameCode: string, displayName: string): Promise<boolean> {
+  const players = await getPlayersInGame(gameCode)
+  return players.some(player => player.displayName.toLowerCase() == displayName.toLowerCase())
+}
 
 /**
  * Creates a Game with the given display name, then creates a Player object for the host. Returns the game
@@ -131,12 +159,12 @@ export async function createGame(gameName: string, exchangeDate: number, hostId:
   const maxAttempts = 15
   let attempts = 0, gameCode = ""
   do {
-    gameCode = generateRandomString(constants.gameCode.validCharacters, constants.gameCode.length)
+    gameCode = generateRandomString(constants.rules.gameCode.validCharacters, constants.rules.gameCode.length)
     attempts++
   } while (await getGame(gameCode) && attempts < maxAttempts);
 
   if (attempts == maxAttempts)
-    throw new HTTPError(500, "Failed to generate a game.")
+    throw new HTTPError(500, constants.strings.gameGenerationFailed)
 
   // TODO: Impose limits on number of games that a person can host?
 
@@ -146,7 +174,7 @@ export async function createGame(gameName: string, exchangeDate: number, hostId:
       displayName: gameName,
       hostName: hostDisplayName,
       started: false,
-      exchangeDate: exchangeDate.toString()
+      exchangeDate: exchangeDate
     }),
     putPlayer({
       gameCode: gameCode,
@@ -156,6 +184,23 @@ export async function createGame(gameName: string, exchangeDate: number, hostId:
   ])
 
   return gameCode
+}
+
+/**
+ * Cleans up all the data related to a game by deleting the `Game` and
+ * all associated `Player` objects from the database.
+ * @param gameCode The code of the game
+ */
+export async function endGame(gameCode: string) {
+  const players = await getPlayersInGame(gameCode)
+
+  // initate all requests BEFORE awaiting any so that an attempt will be made to delete everything
+  // regardless of an error returned by any deletion
+  const deleteGamePromise = deleteGame(gameCode) 
+  const deletePlayerPromises = players.map(player => deletePlayer(gameCode, player.displayName))
+
+  for (let promise of [deleteGamePromise, ...deletePlayerPromises])
+    await promise
 }
 
 /* HELPER FUNCTIONS */
@@ -209,14 +254,14 @@ async function indexGetter<TableEntryType extends DatabaseModel>(tableName: stri
       ...(sortKeyValue && { ':sortValue': sortKeyValue })
     })
   })
-  return response.Items?.length ? entryToModel(unmarshall(response.Items![0]) as any) as TableEntryType : null
+  return getFirstQueryResult<TableEntryType>(response)
 }
 
 /** Retrieve a game by its gameCode. Returns `null` if no game exists with that game code. */
-const getGame = (gameCode: string) => getter<GameModel>(schema.games, gameCode)
+export const getGame = (gameCode: string) => getter<GameModel>(schema.games, gameCode)
 
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
-const getUser = (userId: string) => getter<UserModel>(schema.users, userId)
+export const getUser = (userId: string) => getter<UserModel>(schema.users, userId)
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
 const getUserByPhoneNumber = (phoneNumber: string) => indexGetter<UserModel>(schema.users.name, schema.users.indexes.byPhoneNumber, phoneNumber)
 /** Retrieve a user by their id. Returns `null` if no user exists with that id. */
@@ -249,13 +294,17 @@ const putGame = (game: GameModel) => putter(schema.games, game)
 /** Puts a user entry into the Users table */
 const putUser = (user: UserModel) => putter(schema.users, user)
 /** Puts a player entry into the Players table */
-const putPlayer = (player: PlayerModel) => putter(schema.players, player)
+export const putPlayer = (player: PlayerModel) => putter(schema.players, player)
 /** Puts an auth entry into the Auth table */
 const putAuth = (auth: AuthModel) => putter(schema.auth, auth)
 
 /* UPDATERS */
 /* Create these functions only as you need them */
 
+/** 
+ * Sets the expiration date of the given auth model to Date.now() + `extensionNumber` seconds. The change is
+ * reflected in the database and in the passed object.
+ */
 async function extendExpirationDate(authModel: AuthModel, extensionTime: number) {
   const authEntry = modelToEntry(authModel)
   let newExpirationDate = Date.now() / 1000 + extensionTime
@@ -264,10 +313,15 @@ async function extendExpirationDate(authModel: AuthModel, extensionTime: number)
     Key: getKey(schema.auth, authEntry),
     UpdateExpression: "#ttl = :new-expiration",
     ExpressionAttributeNames: { '#ttl': schema.auth.ttlKey },
-    ExpressionAttributeValues: marshall({ ':new-expiration': newExpirationDate.toString() })
+    ExpressionAttributeValues: marshall({ ':new-expiration': newExpirationDate })
   })
+  authModel.expirationDate = newExpirationDate
 }
 
+/**
+ *  Sets the auth token proprety in the given auth model. Rhe change is reflected in the database and in the 
+ * passed object. 
+ */
 async function setAuthToken(authModel: AuthModel, token: string) {
   const authEntry = modelToEntry(authModel)
   await ddb.updateItem({
@@ -277,6 +331,7 @@ async function setAuthToken(authModel: AuthModel, token: string) {
     ExpressionAttributeNames: { '#token': schema.auth.schema.authToken },
     ExpressionAttributeValues: marshall({ ':new-token': token })
   })
+  authModel.authToken = token
 }
 
 
@@ -302,7 +357,7 @@ const deletePlayer = (gameCode: string, displayName: string) => deleter(schema.p
 /** Removes an auth entry from the auth table */
 const deleteAuth = (userId: string, otp: string) => deleter(schema.auth, userId, otp)
 
-/** MISCELLANEOUS */
+/** MISCELLANEOUS UTILITY FUNCTIONS */
 
 /** Convert a Model object to the Key attribute used in get/update/delete requests */
 function getKey(tableSchema: TableSchema, entry: DatabaseEntry): Record<string, AttributeValue> {
@@ -311,3 +366,14 @@ function getKey(tableSchema: TableSchema, entry: DatabaseEntry): Record<string, 
     ...(tableSchema.sortKey && { [tableSchema.sortKey]: entry[tableSchema.sortKey as keyof typeof entry] })
   })
 }
+
+/** Converts a query response into a list of model objects. Returns `[]` if `response.Items` doesn't exist. */
+function mapQueryResult<T extends DatabaseModel>(response: QueryCommandOutput): T[] {
+  const items = response.Items?.map(item => entryToModel(unmarshall(item) as any) as T);
+  return items ?? []
+}
+
+/** Gets the first item returned in a query, or returns null if `response.Items` was empty or doesn't exist. */
+function getFirstQueryResult<T extends DatabaseModel>(response: QueryCommandOutput): T | null {
+  return mapQueryResult<T>(response).at(0) ?? null
+} 

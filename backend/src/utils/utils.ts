@@ -80,8 +80,8 @@ export type RequestBody<Definition extends PropertyDefinition> = {
 }
 /**
  * Validates that the body received in a handler contains everything we expect it to have.
- * If not, an HTTPError is thrown. Otherwise returns a (typed) object based on the based
- * requiredProperties.
+ * If not, an HTTPError is thrown. Otherwise returns a (typed) object based on `requiredProperties`.
+ * 
  * @param body The request body, straight from `event.body`
  * @param requiredProperties The name of the parameters expected to be in `body`, mapped to their types. Valid types are `String`, `Boolean`, and `Number`.
  * @returns `body`, parsed into an object.
@@ -174,5 +174,12 @@ export function camelToKebab(camel: string) {
     tokens[tokens.length - 1] += letter
   }
   return tokens.map(word => word.toLowerCase()).join('-')
+}
+
+/** Returns true if the given display name is valid. */
+export function displayNameIsValid(candidate: string) {
+  const lengthGood = candidate.length <= constants.rules.displayName.maxLength
+  const charactersGood = Array.from(candidate).every(c => constants.rules.displayName.validCharacters.includes(c))
+  return lengthGood && charactersGood
 }
 

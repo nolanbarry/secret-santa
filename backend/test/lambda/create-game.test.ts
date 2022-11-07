@@ -1,0 +1,28 @@
+import { describe, it } from 'mocha'
+import { expect } from 'chai'
+import sinon from 'sinon'
+import * as dynamodb from '../../src/services/dynamodb'
+import handler from '../../src/lambda/create-game'
+import { asPromise, createMockBody } from '../testing-utils'
+
+describe("create game lambda", () => {
+  afterEach(() => {
+    sinon.restore()
+  })
+
+  it("Calls create game and returns game code", async () => {
+    const authenticateStub = sinon.stub(dynamodb, "authenticate").returns(asPromise("<USER ID>"))
+    const createGameStub = sinon.stub(dynamodb, "createGame").returns(asPromise("<GAME CODE>"))
+
+    const response = await handler(...createMockBody({
+      authToken: "<AUTH TOKEN>",
+      gameName: "<GAME NAME>",
+      hostDisplayName: "<HOST DISPLAY NAME>",
+      exchangeDate: 8
+    }))
+    const body = JSON.parse(response.body)
+    expect(body.gameCode).to.equal("<GAME CODE>")
+    expect(authenticateStub.calledOnceWith("<AUTH TOKEN>")).to.be.true
+    expect(createGameStub.calledOnceWith("<GAME NAME>", 8, "<USER ID>", "<HOST DISPLAY NAME>")).to.be.true
+  })
+})
