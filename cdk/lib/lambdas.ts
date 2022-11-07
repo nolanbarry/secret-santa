@@ -24,7 +24,8 @@ export type Lambdas = {
   getGame: Function,
   startGame: Function,
   endGame: Function,
-  getPlayers: Function,
+  getUserPlayers: Function,
+  getGamePlayers: Function
   getPlayer: Function
 }
 
@@ -35,7 +36,7 @@ export type Lambdas = {
 export type LambdaReference = keyof Lambdas
 
 type LambdaConfigurationProps = {
-  /** The name of the lambda. Must be formatted-in-kebab-case. */
+  /** The name of the lambda. Must be formatted-in-kebab-case, and must match the name of the file in the build. */
   name: string,
   /** The api route to attach this lambda to, i.e. `/api/route` */
   apiRoute: string,
@@ -85,9 +86,13 @@ const configurationProps: { [Property in LambdaReference]: LambdaConfigurationPr
     name: 'end-game',
     apiRoute: '/game/end'
   },
-  getPlayers: {
-    name: 'get-players',
+  getUserPlayers: {
+    name: 'get-user-players',
     apiRoute: '/user/players'
+  },
+  getGamePlayers: {
+    name: 'get-game-players',
+    apiRoute: '/game/players'
   },
   getPlayer: {
     name: 'get-player',

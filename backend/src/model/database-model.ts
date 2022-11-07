@@ -15,14 +15,14 @@ export type GameEntry = {
     code: string;
     "host-name": string;
     started: boolean;
-    "exchange-date"?: string;
+    "exchange-date"?: number;
 }
 export type GameModel = {
     displayName: string;
     code: string;
     hostName: string;
     started: boolean;
-    exchangeDate?: string;
+    exchangeDate?: number;
 }
 
 export type UserEntry = {
@@ -58,7 +58,7 @@ export type AuthEntry = {
 export type AuthModel = {
     id: string;
     otp: string;
-    expirationDate: string;
+    expirationDate: number;
     authToken?: string;
 }
 
