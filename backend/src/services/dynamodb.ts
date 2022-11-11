@@ -1,5 +1,6 @@
 import { AttributeValue, DynamoDB } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import { triggerAsyncId } from "async_hooks";
 import { GameEntry, UserEntry, PlayerEntry, AuthEntry, entryToModel, GameModel, UserModel, PlayerModel, AuthModel, modelToEntry, DatabaseModel, DatabaseEntry } from "../model/database-model";
 import { ExpectedError, HTTPError } from "../model/error";
 import { getModeOfContact, ModeOfContact } from "../model/mode-of-contact";
@@ -118,18 +119,18 @@ export async function getPlayers(userId: string): Promise<PlayerModel[]> {
 
 /**
  * Retrieves and returns the players associated with a specific game.
- * @param userId The id of the user to retrieve players of.
+ * @param userId The gameCode of the game to retrieve players from.
  * @returns An array of the `Player` objects
  */
  export async function getPlayersByGame(gameCode: string): Promise<PlayerModel[]> {
   // TODO: Instead of a raw query, this should be querying on an index for partitioning by user id.
   const response = await ddb.query({
-    KeyConditionExpression: '#id = :id',
+    KeyConditionExpression: '#game-code = :game-code',
     ExpressionAttributeNames: {
-      '#id': schema.players.schema.gameCode
+      '#game-code': schema.players.schema.gameCode
     },
     ExpressionAttributeValues: marshall({
-      ':id': gameCode
+      ':game-code': gameCode
     }),
     TableName: schema.players.name,
   })
@@ -313,7 +314,9 @@ export async function setPlayerAssignment(playerModel: PlayerModel, assigned_to:
 }
 
 export async function startGame(gameModel: GameModel) {
+  
   const gameEntry = modelToEntry(gameModel)
+
   await ddb.updateItem({
     TableName: schema.games.name,
     Key: getKey(schema.games, gameEntry),
@@ -321,6 +324,8 @@ export async function startGame(gameModel: GameModel) {
     ExpressionAttributeNames: { '#started': schema.games.schema.started },
     ExpressionAttributeValues: marshall({ ':started': true })
   })
+
+  return true;
 }
 
 

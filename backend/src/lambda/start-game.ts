@@ -28,26 +28,30 @@ async function handler(event: APIGatewayEvent, context: Context) {
   let game = await getGame(gameCode);
   // retrieve host of game
   let host = await getUser(game!.hostName);
+
   // verify host of game id == user.id
   if (host!.id == userId) {
     // make assignments and text/email to everyone
 
     let players = getPlayersByGame(game!.code);
+
     availableAssignments = shuffleArray(await players);
+
     if ((await players).length > 1) {
       (await players).forEach(assignPlayer)
     }
     else {
-      throw new ExpectedError(constants.strings.otpDne);
+      return response(200, {success: false, message: constants.strings.startGameDne})
     }
   
     // update game status as started
     startGame(game!);
+    return response(200);
 
   }
   
+  return response(400);
 
-  return response(200, { message: "Function not implemented." })
 };
 
 function assignPlayer(player: PlayerModel) {
