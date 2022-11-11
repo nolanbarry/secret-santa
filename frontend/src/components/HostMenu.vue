@@ -117,10 +117,16 @@
         /* Lowering the shadow */
     }
 
+    .row {
+        justify-content: center;
+    }
+
     .col {
         display: inline-block;
         padding: 1rem 1rem;
         vertical-align: middle;
+        position: middle;
+        justify-content: center;
     }
 
     .assignment-div {
