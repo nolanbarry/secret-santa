@@ -23,13 +23,10 @@ const router = createRouter({
     {
       path: '/otp',
       name: 'otp',
-      meta: {
-        requiresAuth: true
-      },
       component: () => import('../views/OTPView.vue')
     },
     {
-      path: '/joinExchange',
+      path: '/join-exchange',
       name: 'joinExchange',
       meta: {
         requiresAuth: true
@@ -37,7 +34,7 @@ const router = createRouter({
       component: () => import('../views/JoinExchangeView.vue')
     },
     {
-      path: '/createExchange',
+      path: '/create-exchange',
       name: 'createExchange',
       meta: {
         requiresAuth: true
@@ -45,7 +42,7 @@ const router = createRouter({
       component: () => import('../views/CreateExchangeView.vue')
     },
     {
-      path: '/chooseExchange',
+      path: '/choose-exchange',
       name: 'chooseExchange',
       meta: {
         requiresAuth: true
@@ -53,7 +50,7 @@ const router = createRouter({
       component: () => import('../views/ChooseExchangeView.vue')
     },
     {
-      path: '/userView',
+      path: '/user-view',
       name: 'userView',
       meta: {
         requiresAuth: true
