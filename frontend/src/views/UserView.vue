@@ -1,6 +1,37 @@
 <script setup lang="ts">
 import HamburgerPopout from '@/components/HamburgerPopout.vue';
+import type { Game, Player } from '@/model/network-models';
+import { getGame, getPlayer } from '@/services/MockNetwork';
+import { ref } from 'vue'
 
+import { useRoute } from 'vue-router'
+
+const route = useRoute();
+
+let exchange = ref();
+let hasAssignment = ref(false);
+let gameid = <String>route.params.gameid;
+
+const getExchange = async () => {
+  console.log(gameid);
+  let exchange_data = <Game> await getGame(gameid);
+  let player_data = <Player> await getPlayer("abc", gameid);
+  exchange.value = {
+    playerId: player_data.id,
+    gameCode: exchange_data.code,
+    displayName: player_data.displayName,
+    assignedTo: player_data.assignedTo,
+    exchangeName: exchange_data.displayName,
+    hostName: exchange_data.hostName,
+    started: exchange_data.started,
+    exchangeDate: exchange_data?.exchangeDate
+  }
+  if (player_data.assignedTo) {
+    hasAssignment.value = true;
+  }
+}
+
+getExchange();
 </script>
 
 <template>
@@ -8,25 +39,26 @@ import HamburgerPopout from '@/components/HamburgerPopout.vue';
   <main class="content-wrapper">
     <div class="title-wrapper">
       <header class="exchange-title">
-        Smith Family Gift Exchange
+        {{ exchange?.exchangeName }}
       </header>
     </div>
     <div class="exchange-date-wrapper">
       <h1 class="exchange-date">
-        12/25/22
+        {{ exchange?.exchangeDate }}
       </h1>
     </div>
     <div class="assignment-div">
       <p class="assignment-label">
-        Your Assignment: 
+        {{ exchange?.displayName }}'s Assignment:
       </p>
       <p class="assignment">
-        <em>Pending</em>
+        <em v-if="hasAssignment">{{ exchange?.assignedTo }}</em>
+        <em v-else>Pending</em>
       </p>
     </div>
     <div>
       <h2>
-        Join Code: ABC123
+        Join Code: {{ exchange?.gameCode }}
       </h2>
     </div>
     <div class="player-list-div">
@@ -52,7 +84,6 @@ import HamburgerPopout from '@/components/HamburgerPopout.vue';
 </template>
 
 <style lang="scss">
-
 .content-wrapper {
   display: flex;
   flex-direction: column;
@@ -88,7 +119,6 @@ import HamburgerPopout from '@/components/HamburgerPopout.vue';
   font-family: 'Inter' sans-serif;
   font-size: 1.5rem;
   justify-content: center;
-  // font-weight: bold;
 }
 
 .assignment-div {
@@ -96,7 +126,7 @@ import HamburgerPopout from '@/components/HamburgerPopout.vue';
   flex-direction: row;
   align-items: center;
   justify-content: space-evenly;
-  
+
   margin-top: 1rem;
   margin-bottom: 1rem;
 
@@ -140,7 +170,6 @@ import HamburgerPopout from '@/components/HamburgerPopout.vue';
   padding-top: 30px;
   text-decoration: none;
   color: black;
-  // font-family: 'Inter' sans-serif;
   font-family: 'Coiny';
 
   font-size: 1.5rem;

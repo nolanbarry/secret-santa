@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import router from '@/router';
 import TitleLogo from '../components/TitleLogo.vue';
-import { loginUser, login } from '@/services/Network';
+// import { login } from '@/services/Network';
+import { login } from '@/services/MockNetwork';
 import { ref } from 'vue'
 
 let loading = ref(false)
 
 const loginHandler = async () => {
     loading.value = true;
-    await loginUser();
-    let data = await login();
-    console.log(data);
+    await login();
+    // let data = await login();
     // Head to OTP Page to submit
     router.push("/otp");
 }

@@ -1,46 +1,19 @@
-let isLoggedIn = false;
-
-export async function getAuth() {
-    return isLoggedIn;
-}
-
-export async function loginUser() {
-    isLoggedIn = true;
-    return true;
-}
-
 let BASE_URL = "https://susf36ju4a.execute-api.us-west-2.amazonaws.com/prod";
 
 export async function getUser() {
     let body = {
         "authToken": "helloworld"
     }
-    try {
-        const response = await fetch(`${BASE_URL}/user`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(body)
-        })
-        return await response.json();
-    } catch(e) {
-        console.log(e);
-    }
+    let response = await postMethod("/user", body);
+    return response;
 }
 
 export async function login() {
     let body = {
-        "contact": "123@gmail.com"
+        "contactString": "123@gmail.com"
     }
-    try {
-        const response = await fetch(`${BASE_URL}/user/login`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(body)
-        })
-        return await response.json();
-    } catch(e) {
-        console.log(e);
-    }
+    let response = await postMethod("/user/login", body);
+    return response;
 }
 
 export async function submitOtp() {
@@ -48,16 +21,8 @@ export async function submitOtp() {
         "id": "123",
         "otp": "123"
     }
-    try {
-        const response = await fetch(`${BASE_URL}/user/submitotp`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(body)
-        })
-        return await response.json();
-    } catch(e) {
-        console.log(e);
-    }
+    let response = await postMethod("/user/submitotp", body);
+    return response;
 }
 
 export async function getGame() {
@@ -65,16 +30,8 @@ export async function getGame() {
         "authToken": "123",
         "gameCode": "123"
     }
-    try {
-        const response = await fetch(`${BASE_URL}/game`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(body)
-        })
-        return await response.json();
-    } catch(e) {
-        console.log(e);
-    }
+    let response = await postMethod("/game", body);
+    return response;
 }
 
 export async function joinGame() {
@@ -83,32 +40,16 @@ export async function joinGame() {
         "gameCode": "123",
         "displayName": "abc"
     }
-    try {
-        const response = await fetch(`${BASE_URL}/game/join`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(body)
-        })
-        return await response.json();
-    } catch(e) {
-        console.log(e);
-    }
+    let response = await postMethod("/game/join", body);
+    return response;
 }
 
 export async function createGame() {
     let body = {
         "authToken": "123"
     }
-    try {
-        const response = await fetch(`${BASE_URL}/game/create`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(body)
-        })
-        return await response.json();
-    } catch(e) {
-        console.log(e);
-    }
+    let response = await postMethod("/game/create", body);
+    return response;
 }
 
 export async function startGame() {
@@ -116,16 +57,8 @@ export async function startGame() {
         "authToken": "123",
         "gameCode": "123"
     }
-    try {
-        const response = await fetch(`${BASE_URL}/game/start`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(body)
-        })
-        return await response.json();
-    } catch(e) {
-        console.log(e);
-    }
+    let response = await postMethod("/game/start", body);
+    return response;
 }
 
 export async function endGame() {
@@ -133,32 +66,16 @@ export async function endGame() {
         "authToken": "123",
         "gameCode": "123"
     }
-    try {
-        const response = await fetch(`${BASE_URL}/game/end`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(body)
-        })
-        return await response.json();
-    } catch(e) {
-        console.log(e);
-    }
+    let response = await postMethod("/game/end", body);
+    return response;
 }
 
 export async function getPlayers() {
     let body = {
         "authToken": "123"
     }
-    try {
-        const response = await fetch(`${BASE_URL}/user/players`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(body)
-        })
-        return await response.json();
-    } catch(e) {
-        console.log(e);
-    }
+    let response = await postMethod("/user/players", body);
+    return response;
 }
 
 export async function getPlayer() {
@@ -167,14 +84,19 @@ export async function getPlayer() {
         "gameCode": "123",
         "displayName": "abc"
     }
+    let response = await postMethod("/user/player", body);
+    return response;
+}
+
+async function postMethod(path: String, body: Object) {
     try {
-        const response = await fetch(`${BASE_URL}/user/player`, {
+        const response = await fetch(`${BASE_URL}${path}`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         })
         return await response.json();
-    } catch(e) {
+    } catch (e) {
         console.log(e);
     }
 }
