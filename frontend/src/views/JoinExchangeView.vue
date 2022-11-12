@@ -15,7 +15,8 @@
       <input type="text" class="text-input" placeholder="Your name" />
     </div>
     <div class="button-div">
-      <router-link to="/user-view" class="button">
+      <!-- TODO: Actually access api functions -->
+      <router-link to="/user-view/def" class="button">
         Join Exchange
       </router-link>
     </div>

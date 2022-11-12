@@ -18,6 +18,11 @@ export async function login() {
     return true;
 }
 
+export async function logout() {
+    isLoggedIn = false;
+    return false;
+}
+
 export async function getGame(gameId: String) {
     if (gameId == "def") {
         let data: Game = {

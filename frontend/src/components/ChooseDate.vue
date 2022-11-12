@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
+let chosenDate = ref();
 </script>
 
 <template>
   <div class="date-picker-div">
-    <input type="date" class="date-picker" />
+    <input type="date" v-model="chosenDate" class="date-picker" @input="$emit('chosen-date', chosenDate)" />
   </div>
 </template>
 

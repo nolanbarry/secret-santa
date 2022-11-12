@@ -9,6 +9,7 @@
       <div :class="['flyout-menu', { 'open': open }]" ref="flyout"
         :style="`transform: translateX(-${!open ? flyout?.clientWidth ?? 10000 : 0}px)`">
         <div class="menu-title">Menu</div>
+        <router-link to="/choose-exchange">View my Exchange List</router-link>
         <router-link to="/join-exchange">Join Exchange</router-link>
         <router-link to="/create-exchange">Create Exchange</router-link>
         <div @click="signOut">Sign Out</div>
@@ -19,6 +20,8 @@
 </template>
 
 <script setup lang="ts">
+import { logout } from '@/services/MockNetwork';
+import router from '@/router';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { onMounted, onUnmounted, ref } from 'vue'
 import { RouterLink } from 'vue-router';
@@ -48,9 +51,12 @@ onUnmounted(() => {
   document.removeEventListener('click', clickListener)
 })
 
-function signOut() {
+async function signOut() {
   open.value = false;
-  // TODO
+
+  await logout();
+
+  router.push(`/`);
 }
 </script>
 
