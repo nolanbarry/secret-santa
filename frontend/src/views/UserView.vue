@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import HamburgerPopout from '@/components/HamburgerPopout.vue';
+
 </script>
 
 <template>
+  <HamburgerPopout></HamburgerPopout>
   <main class="content-wrapper">
     <div class="title-wrapper">
       <header class="exchange-title">
@@ -48,7 +51,7 @@
   </main>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss">
 
 .content-wrapper {
   display: flex;
