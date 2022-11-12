@@ -160,7 +160,7 @@
 
     .assignment-button {
         margin-top: 2rem;
-        display: flex;
+        vertical-align: middle;
 
         border: none;
         background-color: #D9D9D9;
