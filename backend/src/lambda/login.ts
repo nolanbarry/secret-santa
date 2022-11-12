@@ -8,10 +8,12 @@ import { getUserIdByContactString } from '../services/dynamodb'
 
 /* See https://docs.aws.amazon.com/lambda/latest/dg/typescript-handler.html */
 
-const requestParameters = ['contact']
+const requestParameters = {
+  contactString: String
+}
 
 async function handler(event: APIGatewayEvent, context: Context) {
-  const { contact } = validateRequestBody(event.body, requestParameters)
+  const { contactString } = validateRequestBody(event.body, requestParameters)
 
   // search for contact in users table
   // if contact doesn't exist, create an entry

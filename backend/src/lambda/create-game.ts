@@ -1,22 +1,26 @@
 /* Creates a game, assigns the authorized user to it as the host, and returns the new game code. */
 
 import { APIGatewayEvent, Context } from 'aws-lambda'
-import constants from '../utils/constants'
+import { authenticate, createGame } from '../services/dynamodb'
 import { lambda, response, validateRequestBody } from '../utils/utils'
+import constants from '../utils/constants'
 
 /* See https://docs.aws.amazon.com/lambda/latest/dg/typescript-handler.html */
 
-const requestParameters = ['authToken', 'displayName']
+const requestParameters = {
+  authToken: String,
+  gameName: String,
+  hostDisplayName: String,
+  exchangeDate: Number
+}
 
 async function handler(event: APIGatewayEvent, context: Context) {
-  const { authToken, displayName } = validateRequestBody(event.body, requestParameters)
+  const { authToken, exchangeDate, gameName, hostDisplayName } = validateRequestBody(event.body, requestParameters)
 
-  // validate auth token, retrieve associated user
-  // create game object in database with 0 players, host display name is given display name
-  // call join game with display name and new game code
-  // return game code
+  let userId = await authenticate(authToken)
+  let gameCode = await createGame(gameName, exchangeDate, userId, hostDisplayName)
 
-  return response(200, { message: "Function not implemented." })
+  return response(200, { gameCode })
 };
 
 export default lambda(handler)

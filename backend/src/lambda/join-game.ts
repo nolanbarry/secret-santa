@@ -1,21 +1,45 @@
 /* Creates a new Player with the given display name, with the ID of the authorized user. */
 
 import { APIGatewayEvent, Context } from 'aws-lambda'
-import { lambda, response, validateRequestBody } from '../utils/utils'
+import { ExpectedError, HTTPError } from '../model/error'
+import { authenticate, displayNameTaken, getGame, putPlayer } from '../services/dynamodb'
+import constants from '../utils/constants'
+import { displayNameIsValid, lambda, response, validateRequestBody } from '../utils/utils'
 
 /* See https://docs.aws.amazon.com/lambda/latest/dg/typescript-handler.html */
 
-const requestParameters = ['authToken', 'gameCode', 'displayName']
+const requestParameters = {
+  authToken: String,
+  gameCode: String,
+  displayName: String
+}
 
 async function handler(event: APIGatewayEvent, context: Context) {
   const { authToken, gameCode, displayName } = validateRequestBody(event.body, requestParameters)
 
-  // verify authtoken, retrieve user
-  // verify someone with that display name isn't already in the game
-  // return 200 OK with success: false and message: "Display name taken" if display name is taken
-  // join game
+  const userId = await authenticate(authToken)
 
-  return response(200, { message: "Function not implemented." })
+  // validate game exists, display name is valid, and display name isn't taken
+  const game = await getGame(gameCode)
+  if (!game)
+    throw new HTTPError(400, constants.strings.gameDne(gameCode))
+
+  if (game.started)
+    throw new ExpectedError(constants.strings.gameHasStarted)
+
+  if (!displayNameIsValid(displayName))
+    throw new ExpectedError(constants.strings.displayNameInvalid)
+
+  if (await displayNameTaken(gameCode, displayName))
+    throw new ExpectedError(constants.strings.displayNameTaken)
+
+  await putPlayer({
+    displayName: displayName,
+    id: userId,
+    gameCode: gameCode
+  })
+
+  return response(200, { success: true })
 };
 
 export default lambda(handler)
