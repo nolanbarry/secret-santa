@@ -3,7 +3,8 @@
 import { APIGatewayEvent, Context } from 'aws-lambda'
 import { lambda, response, validateRequestBody } from '../utils/utils'
 
-import { getUserIdByContactString } from '../services/dynamodb'
+import {getUserIdByContactString, login } from '../services/dynamodb'
+import { sendMessage } from '../services/ses'
 
 
 /* See https://docs.aws.amazon.com/lambda/latest/dg/typescript-handler.html */
@@ -17,13 +18,18 @@ async function handler(event: APIGatewayEvent, context: Context) {
 
   // search for contact in users table
   // if contact doesn't exist, create an entry
-  //let userId: string = getUserIdByContactString(contact as string)
-  // create auth table entry with new otp and user id
+  const userId = await getUserIdByContactString(contactString as string)
 
-  // text/email otp to user
+  // create auth table entry with new otp and user id
+  const otp = await login(userId)
+
+  // text/email otp to user 
+  //TODO: allow for email or text based on mode of contact.
+  // Currently this will always try to send an email to the contactString, even if it is a phone number
+  sendMessage(otp as string, "Secret Santa One Time Password", contactString)
 
   // return 200 OK {success: true}
-  return response(200, { message: "Function not implemented." })
+  return response(200, { success: true })
 };
 
 export default lambda(handler)

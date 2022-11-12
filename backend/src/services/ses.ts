@@ -6,11 +6,11 @@ import constants from "../utils/constants"
 
 const client = new SES({ region: constants.region })
 
-export function sendMessage(message:string, ...emails: string[]) { //Might refactor this to just be the "sendEmail() function"?
+export function sendMessage(message:string, subject:string, ...emails: string[]) { //Might refactor this to just be the "sendEmail() function"?
   sendEmail({
     emails: emails,
     body: getMessageHtml(message),
-    subject: "Message From Secret Santa", //This needs to change based on what kind of message we're sending
+    subject: subject, //This needs to change based on what kind of message we're sending
     source: constants.sesSource
   })
 }
