@@ -362,13 +362,11 @@ export async function startGame(gameModel: GameModel) {
     Key: getKey(schema.games, gameEntry),
     UpdateExpression: "#started = :newStarted",
     ExpressionAttributeNames: { '#started': schema.games.schema.started },
-    ExpressionAttributeValues: marshall({ ':started': true })
+    ExpressionAttributeValues: marshall({ ':newStarted': true })
   })
 
   return true;
 }
-
-
 
 /* DELETERS */
 
