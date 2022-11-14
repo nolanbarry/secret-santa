@@ -7,13 +7,15 @@ let loading = ref(false)
 let displayName = ref()
 let exchangeCode = ref()
 
+let authToken = history.state.authToken
+
 const joinExchangeHandler = async () => {
   loading.value = true;
 
-  let data = await joinGame(exchangeCode.value, displayName.value);
+  let data = await joinGame(authToken, exchangeCode.value, displayName.value);
 
   if (data.success == true) {
-    router.push(`/user-view/${exchangeCode.value}`);
+    router.push({ name: "userView", params: { gameid: exchangeCode.value }, state: { authToken } })
   } else {
     router.push('/');
   }

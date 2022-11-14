@@ -1,34 +1,34 @@
 let BASE_URL = "https://susf36ju4a.execute-api.us-west-2.amazonaws.com/prod";
 
-export async function getUser() {
+export async function getUser(authToken: string) {
     let body = {
-        "authToken": "helloworld"
+        "authToken": authToken
     }
     let response = await postMethod("/user", body);
     return response;
 }
 
-export async function login() {
+export async function login(contactString: string) {
     let body = {
-        "contactString": "123@gmail.com"
+        "contactString": contactString
     }
     let response = await postMethod("/user/login", body);
     return response;
 }
 
-export async function submitOtp() {
+export async function submitOtp(id: string, otp: string) {
     let body = {
-        "id": "123",
-        "otp": "123"
+        "id": id,
+        "otp": otp
     }
     let response = await postMethod("/user/submitotp", body);
     return response;
 }
 
-export async function getGame() {
+export async function getGame(authToken: string, gameCode: string) {
     let body = {
-        "authToken": "123",
-        "gameCode": "123"
+        "authToken": authToken,
+        "gameCode": gameCode
     }
     let response = await postMethod("/game", body);
     return response;

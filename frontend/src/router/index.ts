@@ -66,7 +66,7 @@ router.beforeEach(async (to, from, next) => {
     // this route requires auth, check if logged in
     // if not, redirect to login page.
     if (!(await getAuth())) {
-      sessionStorage.setItem('redirectPath', to.path);
+      sessionStorage.setItem('redirectName', to.name ? to.name.toString() : '/');
       next({ name: 'login' })
     } else {
       next() // go to wherever I'm going

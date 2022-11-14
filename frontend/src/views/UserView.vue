@@ -11,11 +11,12 @@ const route = useRoute();
 let exchange = ref();
 let hasAssignment = ref(false);
 let gameid = <String>route.params.gameid;
+let authToken = history.state.authToken
 
 const getExchange = async () => {
   console.log(gameid);
-  let exchange_data = <Game> await getGame(gameid);
-  let player_data = <Player> await getPlayer("abc", gameid);
+  let exchange_data = <Game> await getGame(authToken, gameid);
+  let player_data = <Player> await getPlayer(authToken, gameid);
   exchange.value = {
     playerId: player_data.id,
     gameCode: exchange_data.code,

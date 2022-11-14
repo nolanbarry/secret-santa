@@ -9,12 +9,14 @@ let exchangeName = ref()
 let hostDisplayName = ref()
 let exchangeDate = ref()
 
+let authToken = history.state.authToken
+
 const createExchangeHandler = async () => {
   loading.value = true;
 
-  let data = await createGame(exchangeName.value, hostDisplayName.value, exchangeDate.value);
+  let data = await createGame(authToken, exchangeName.value, hostDisplayName.value, exchangeDate.value);
 
-  router.push(`/user-view/${data.gameCode}`);
+  router.push({ name: "userView", params: { gameid: data.gameCode }, state: { authToken } })
 }
 </script>
 
@@ -27,9 +29,11 @@ const createExchangeHandler = async () => {
     </div>
     <div class="text-input-div">
       <p>Enter a name for your new exchange:</p>
-      <input class="text-input" type="text" v-model="exchangeName" placeholder="Exchange name" />
+      <input class="text-input" type="text" v-model="exchangeName"
+        placeholder="Exchange name" />
       <p>Enter your name:</p>
-      <input class="text-input" type="text" v-model="hostDisplayName" placeholder="Your name" />
+      <input class="text-input" type="text" v-model="hostDisplayName"
+        placeholder="Your name" />
     </div>
     <div class="date-picker-div">
       <p>Choose a date for your exchange:</p>
