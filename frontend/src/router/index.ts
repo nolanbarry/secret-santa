@@ -22,7 +22,8 @@ const router = createRouter({
     {
       path: '/otp',
       name: 'otp',
-      component: () => import('../views/OTPView.vue')
+      component: () => import('../views/OTPView.vue'),
+      props: { default: true }
     },
     {
       path: '/join-exchange',

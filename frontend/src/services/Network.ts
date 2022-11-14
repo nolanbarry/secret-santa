@@ -1,4 +1,5 @@
-let BASE_URL = "https://susf36ju4a.execute-api.us-west-2.amazonaws.com/prod";
+// let BASE_URL = "https://susf36ju4a.execute-api.us-west-2.amazonaws.com/prod"; // Nolan's Link
+let BASE_URL = "https://8ymlgc01j7.execute-api.us-west-2.amazonaws.com/prod/" // Jared's Link
 
 export async function getUser() {
     let body = {
@@ -8,18 +9,18 @@ export async function getUser() {
     return response;
 }
 
-export async function login() {
+export async function login(contactString: string) {
     let body = {
-        "contactString": "123@gmail.com"
+        "contactString": contactString
     }
     let response = await postMethod("/user/login", body);
     return response;
 }
 
-export async function submitOtp() {
+export async function submitOtp(id: string, otp: string) {
     let body = {
-        "id": "123",
-        "otp": "123"
+        "id": id,
+        "otp": otp
     }
     let response = await postMethod("/user/submitotp", body);
     return response;
