@@ -35,57 +35,69 @@ export async function getGame(authToken: string, gameCode: string) {
     return response;
 }
 
-export async function joinGame() {
+export async function joinGame(authToken: String, gameCode: String, displayname: String) {
     let body = {
-        "authToken": "123",
-        "gameCode": "123",
-        "displayName": "abc"
+        "authToken": authToken,
+        "gameCode": gameCode,
+        "displayName": displayname
     }
     let response = await postMethod("/game/join", body);
     return response;
 }
 
-export async function createGame() {
+export async function createGame(authToken: String, gameName: String, hostDisplayName: String, exchangeDate: String) {
     let body = {
-        "authToken": "123"
+        "authToken": authToken,
+        "gameName": gameName,
+        "hostDisplayName": hostDisplayName,
+        "exchangeDate": exchangeDate
     }
     let response = await postMethod("/game/create", body);
     return response;
 }
 
-export async function startGame() {
+export async function startGame(authToken: String, gameCode: String) {
     let body = {
-        "authToken": "123",
-        "gameCode": "123"
+        "authToken": authToken,
+        "gameCode": gameCode
     }
     let response = await postMethod("/game/start", body);
     return response;
 }
 
-export async function endGame() {
+export async function endGame(authToken: String, gameCode: String) {
     let body = {
-        "authToken": "123",
-        "gameCode": "123"
+        "authToken": authToken,
+        "gameCode": gameCode
     }
     let response = await postMethod("/game/end", body);
     return response;
 }
 
-export async function getPlayers() {
+export async function getPlayers(authToken: String) {
     let body = {
-        "authToken": "123"
+        "authToken": authToken
     }
     let response = await postMethod("/user/players", body);
     return response;
 }
 
-export async function getPlayer() {
+export async function getPlayer(authToken: String, gameCode: String, displayName: String) {
     let body = {
-        "authToken": "123",
-        "gameCode": "123",
-        "displayName": "abc"
+        "authToken": authToken,
+        "gameCode": gameCode,
+        "displayName": displayName
     }
     let response = await postMethod("/user/player", body);
+    return response;
+}
+
+export async function getGamePlayers(authToken: String, gameCode: String) {
+    let body = {
+        "authToken": authToken,
+        "gameCode": gameCode
+    }
+    let response = await postMethod("/game/players", body);
     return response;
 }
 
