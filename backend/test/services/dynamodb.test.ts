@@ -5,12 +5,12 @@ import sinon from 'sinon'
 import { AwsStub, mockClient } from 'aws-sdk-client-mock'
 import { DeleteItemCommand, DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
 import { marshall } from '@aws-sdk/util-dynamodb';
+import { authenticate, displayNameTaken, getPlayersForUser, getUserIdByContactString, login, verifyOtp, createGame, getPlayersInGame, startGame, endGame } from '../../src/services/dynamodb'
 import * as modeOfContact from '../../src/model/mode-of-contact'
 import * as utils from '../../src/utils/utils'
 import constants from '../../src/utils/constants'
 import { ExpectedError, HTTPError } from '../../src/model/error'
-import { AuthEntry, entryToModel, PlayerEntry } from '../../src/model/database-model'
-import { authenticate, createGame, displayNameTaken, getPlayersForUser, getPlayersInGame, getUserIdByContactString, login, verifyOtp, endGame } from '../../src/services/dynamodb'
+import { AuthEntry, entryToModel, GameModel, PlayerEntry } from '../../src/model/database-model'
 
 /*
  * Helpful Documentation:
@@ -282,3 +282,58 @@ describe("dynamodb:", () => {
     })
   })
 })
+
+describe("dynamodb: getPlayersInGame()", () => {
+  it("Succeeds when there are multiple players in a game", async () => {
+    const samplePlayers: PlayerEntry[] = [
+      {
+        "display-name": "Player 1",
+        "game-code": "<GAME CODE>",
+        id: "<USER ID>"
+      },
+      {
+        "display-name": "Player 2",
+        "game-code": "<GAME CODE>",
+        id: "<USER ID>"
+      }
+    ]
+    dynamodbMock.on(QueryCommand).resolves({
+      Items: samplePlayers.map(p => marshall(p))
+    })
+
+    await expect(getPlayersInGame("<GAME CODE>")).to.eventually.deep.equal(samplePlayers.map(p => entryToModel(p)))
+    expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(2)
+  })
+})
+
+describe("dynamodb: startGame()", () => {
+  it("Updates game to started", async () => {
+    const samplePlayers: PlayerEntry[] = [
+      {
+        "display-name": "Player 1",
+        "game-code": "<GAME CODE>",
+        id: "<USER ID>"
+      },
+      {
+        "display-name": "Player 2",
+        "game-code": "<GAME CODE>",
+        id: "<USER ID>"
+      }
+    ]
+    dynamodbMock.on(QueryCommand).resolves({
+      Items: samplePlayers.map(p => marshall(p))
+    })
+
+    const sampleGame : GameModel = {
+      "displayName" : "<DISPLAY NAME>",
+      "code" : "<GAME CODE>",
+      "started" : false,
+      "hostName": "<HOST NAME>"
+    }
+
+    await expect(startGame(sampleGame)).to.eventually.deep.equal(true)
+    expect(dynamodbMock.commandCalls(UpdateItemCommand).length, "update item called once").to.equal(1)
+  })
+
+})
+
