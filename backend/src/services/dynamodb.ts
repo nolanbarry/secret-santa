@@ -311,9 +311,9 @@ async function extendExpirationDate(authModel: AuthModel, extensionTime: number)
   await ddb.updateItem({
     TableName: schema.auth.name,
     Key: getKey(schema.auth, authEntry),
-    UpdateExpression: "#ttl = :new-expiration",
+    UpdateExpression: "#ttl = :newExpiration",
     ExpressionAttributeNames: { '#ttl': schema.auth.ttlKey },
-    ExpressionAttributeValues: marshall({ ':new-expiration': newExpirationDate })
+    ExpressionAttributeValues: marshall({ ':newExpiration': newExpirationDate })
   })
   authModel.expirationDate = newExpirationDate
 }
@@ -327,9 +327,9 @@ async function setAuthToken(authModel: AuthModel, token: string) {
   await ddb.updateItem({
     TableName: schema.auth.name,
     Key: getKey(schema.auth, authEntry),
-    UpdateExpression: "#token = :new-token",
+    UpdateExpression: "#token = :newToken",
     ExpressionAttributeNames: { '#token': schema.auth.schema.authToken },
-    ExpressionAttributeValues: marshall({ ':new-token': token })
+    ExpressionAttributeValues: marshall({ ':newToken': token })
   })
   authModel.authToken = token
 }
