@@ -11,7 +11,6 @@ let exchangeDate = ref()
 
 const createExchangeHandler = async () => {
   loading.value = true;
-  console.log(exchangeDate.value);
 
   let data = await createGame(exchangeName.value, hostDisplayName.value, exchangeDate.value);
 
