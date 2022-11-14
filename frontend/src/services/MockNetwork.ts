@@ -90,6 +90,19 @@ export async function getGame(authToken: String, gameCode: String) {
     }
 }
 
+export async function getGamePlayers(authToken: String, gameCode: String) {
+    let authVal = authData.find((x) => { return (x.authToken === authToken) })
+    let gamePlayers = players.filter((x) => { return (x.gameCode === gameCode) })
+
+    if (authVal && gamePlayers) {
+        return gamePlayers
+    } else {
+        return {
+            success: false
+        }
+    }
+}
+
 export async function joinGame(authToken: String, gameCode: String, displayName: String) {
     let authVal = authData.find((x) => { return (x.authToken === authToken) })
     let game = games.find((x) => { return (x.code === gameCode) })
@@ -207,7 +220,31 @@ let players: Array<Player> = [
         gameCode: "mno",
         displayName: "Bobby",
         assignedTo: ""
-    }
+    },
+    {
+        id: "user4",
+        gameCode: "def",
+        displayName: "Alice",
+        assignedTo: ""
+    },
+    {
+        id: "user4",
+        gameCode: "def",
+        displayName: "Jane",
+        assignedTo: ""
+    },
+    {
+        id: "user4",
+        gameCode: "def",
+        displayName: "Alex",
+        assignedTo: ""
+    },
+    {
+        id: "user4",
+        gameCode: "def",
+        displayName: "Jake",
+        assignedTo: ""
+    },
 ]
 
 let games: Array<Game> = [

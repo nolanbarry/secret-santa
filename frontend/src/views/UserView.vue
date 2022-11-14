@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import HamburgerPopout from '@/components/HamburgerPopout.vue';
 import type { Game, Player } from '@/model/network-models';
-import { getGame, getPlayer } from '@/services/MockNetwork';
+import { getGame, getPlayer, getGamePlayers } from '@/services/MockNetwork';
 import { ref } from 'vue'
 
 import { useRoute } from 'vue-router'
@@ -12,11 +12,12 @@ let exchange = ref();
 let hasAssignment = ref(false);
 let gameid = <String>route.params.gameid;
 let authToken = history.state.authToken
+let exchangePlayers = ref();
 
 const getExchange = async () => {
-  console.log(gameid);
-  let exchange_data = <Game> await getGame(authToken, gameid);
-  let player_data = <Player> await getPlayer(authToken, gameid);
+  // console.log(gameid);
+  let exchange_data = <Game>await getGame(authToken, gameid);
+  let player_data = <Player>await getPlayer(authToken, gameid);
   exchange.value = {
     playerId: player_data.id,
     gameCode: exchange_data.code,
@@ -30,6 +31,8 @@ const getExchange = async () => {
   if (player_data.assignedTo) {
     hasAssignment.value = true;
   }
+
+  exchangePlayers.value = <[Player]>await getGamePlayers(authToken, gameid);
 }
 
 getExchange();
@@ -67,19 +70,22 @@ getExchange();
         Player List:
       </h2>
     </div>
-    <div class="row">
-      <div class="column">
+    <!-- <div class="row"> -->
+    <!-- <div class="column">
         <p>Player 1</p>
         <p>Player 2</p>
         <p>Player 3</p>
         <p>Player 4</p>
-      </div>
-      <div class="column">
+      </div> -->
+    <!-- <div class="column">
         <p>Player 5</p>
         <p>Player 6</p>
         <p>Player 7</p>
         <p>Player 8</p>
-      </div>
+      </div> -->
+    <!-- </div> -->
+    <div class="column" v-for="player in exchangePlayers">
+      <p>{{ player.displayName }}</p>
     </div>
   </main>
 </template>
