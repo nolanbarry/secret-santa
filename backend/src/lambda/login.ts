@@ -29,7 +29,7 @@ async function handler(event: APIGatewayEvent, context: Context) {
   sendMessage(otp as string, "Secret Santa One Time Password", contactString)
 
   // return 200 OK {success: true}
-  return response(200, { success: true })
+  return response(200, { userId })
 };
 
 export default lambda(handler)
