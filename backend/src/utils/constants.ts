@@ -73,6 +73,7 @@ const tables = {
 const strings = {
   authTokenDne: "Invalid auth token",
   otpDne: "Invalid OTP",
+  tooFewPlayers: "Too few players",
   gameGenerationFailed: "Failed to generate game code",
   displayNameInvalid: "Display name contains invalid characters or is too long",
   displayNameTaken: "Display name is taken",

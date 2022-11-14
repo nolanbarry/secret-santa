@@ -334,7 +334,39 @@ async function setAuthToken(authModel: AuthModel, token: string) {
   authModel.authToken = token
 }
 
+/**
+ *  Sets the assignee property in the given player model. The change is reflected in the database and in the 
+ * passed object. 
+ */
+export async function setPlayerAssignment(playerModel: PlayerModel, assignedTo: string) {
+  const playerEntry = modelToEntry(playerModel)
+  await ddb.updateItem({
+    TableName: schema.players.name,
+    Key: getKey(schema.players, playerEntry),
+    UpdateExpression: "#assignedTo = :newAssignedTo",
+    ExpressionAttributeNames: { '#assignedTo': schema.players.schema.assignedTo },
+    ExpressionAttributeValues: marshall({ ':newAssignedTo': assignedTo })
+  })
+}
 
+/**
+ *  Sets the "started" property in the given game model to "true". The change is reflected in the database and in the 
+ * passed object. 
+ */
+export async function startGame(gameModel: GameModel) {
+  
+  const gameEntry = modelToEntry(gameModel)
+
+  await ddb.updateItem({
+    TableName: schema.games.name,
+    Key: getKey(schema.games, gameEntry),
+    UpdateExpression: "#started = :newStarted",
+    ExpressionAttributeNames: { '#started': schema.games.schema.started },
+    ExpressionAttributeValues: marshall({ ':newStarted': true })
+  })
+
+  return true;
+}
 
 /* DELETERS */
 
