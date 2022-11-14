@@ -9,9 +9,14 @@
       <div :class="['flyout-menu', { 'open': open }]" ref="flyout"
         :style="`transform: translateX(-${!open ? flyout?.clientWidth ?? 10000 : 0}px)`">
         <div class="menu-title">Menu</div>
-        <router-link to="/choose-exchange">View my Exchange List</router-link>
-        <router-link to="/join-exchange">Join Exchange</router-link>
-        <router-link to="/create-exchange">Create Exchange</router-link>
+        <router-link :to="{ name: 'chooseExchange', state: { authToken } }">
+          View my Exchange List</router-link>
+        <router-link :to="{ name: 'joinExchange', state: { authToken } }">
+          Join Exchange
+        </router-link>
+        <router-link :to="{ name: 'createExchange', state: { authToken } }">
+          Create Exchange
+        </router-link>
         <div @click="signOut">Sign Out</div>
       </div>
     </div>
@@ -29,6 +34,8 @@ const open = ref(false)
 /* https://vuejs.org/guide/typescript/composition-api.html#typing-template-refs */
 const hamburger = ref<HTMLInputElement | null>()
 const flyout = ref<HTMLInputElement | null>()
+
+let authToken = history.state.authToken;
 
 const clickListener = (event: MouseEvent) => {
   const clickTarget = event.target as HTMLInputElement
@@ -153,6 +160,7 @@ $mobile-threshold: 800px;
         font-weight: 400;
         padding: 15px 40px;
         font-size: 24px;
+
         // hide on small screens because the menu bar servers
         // the same purpose of this element
         @media screen and (max-width: $mobile-threshold) {

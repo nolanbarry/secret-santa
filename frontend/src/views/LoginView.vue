@@ -11,7 +11,9 @@ const loginHandler = async () => {
     loading.value = true;
     let data = await login(userEmail.value);
     let userid = data.userId
-    router.push({ name: "otp", state: { userid } })
+    
+    // Head to OTP Page to submit
+    router.push({ name: "otp", state: { userid } });
 }
 </script>
 

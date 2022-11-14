@@ -1,9 +1,9 @@
 // let BASE_URL = "https://susf36ju4a.execute-api.us-west-2.amazonaws.com/prod"; // Nolan's Link
 let BASE_URL = "https://8ymlgc01j7.execute-api.us-west-2.amazonaws.com/prod/" // Jared's Link
 
-export async function getUser() {
+export async function getUser(authToken: string) {
     let body = {
-        "authToken": "helloworld"
+        "authToken": authToken
     }
     let response = await postMethod("/user", body);
     return response;
@@ -26,10 +26,10 @@ export async function submitOtp(id: string, otp: string) {
     return response;
 }
 
-export async function getGame() {
+export async function getGame(authToken: string, gameCode: string) {
     let body = {
-        "authToken": "123",
-        "gameCode": "123"
+        "authToken": authToken,
+        "gameCode": gameCode
     }
     let response = await postMethod("/game", body);
     return response;

@@ -10,13 +10,15 @@ let otp = ref()
 
 const submitOTPHandler = async () => {
   loading.value = true;
+
   let data = await submitOtp(userid, otp.value)
-  console.log(data)
-  //Go to '/defaultpath' if no redirectPath value is set
-  router.push(sessionStorage.getItem('redirectPath') || '/');
+  let authToken = data.authToken;
+
+  //Go to '/' if no redirectName value is set
+  router.push({name: sessionStorage.getItem('redirectName')?.toString(), state: {authToken}} || '/');
 
   //Cleanup redirectPath
-  sessionStorage.removeItem('redirectPath');
+  sessionStorage.removeItem('redirectName');
 }
 </script>
 
