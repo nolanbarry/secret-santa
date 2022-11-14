@@ -1,6 +1,5 @@
 import { AttributeValue, DynamoDB, QueryCommandOutput } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
-import { triggerAsyncId } from "async_hooks";
 import { GameEntry, UserEntry, PlayerEntry, AuthEntry, entryToModel, GameModel, UserModel, PlayerModel, AuthModel, modelToEntry, DatabaseModel, DatabaseEntry } from "../model/database-model";
 import { ExpectedError, HTTPError } from "../model/error";
 import { getModeOfContact, ModeOfContact } from "../model/mode-of-contact";
@@ -335,17 +334,25 @@ async function setAuthToken(authModel: AuthModel, token: string) {
   authModel.authToken = token
 }
 
-export async function setPlayerAssignment(playerModel: PlayerModel, assigned_to: string) {
+/**
+ *  Sets the assignee property in the given player model. The change is reflected in the database and in the 
+ * passed object. 
+ */
+export async function setPlayerAssignment(playerModel: PlayerModel, assignedTo: string) {
   const playerEntry = modelToEntry(playerModel)
   await ddb.updateItem({
     TableName: schema.players.name,
     Key: getKey(schema.players, playerEntry),
     UpdateExpression: "#assigned-to = :new-assigned-to",
     ExpressionAttributeNames: { '#assigned-to': schema.players.schema.assignedTo },
-    ExpressionAttributeValues: marshall({ ':new-assigned-to': assigned_to })
+    ExpressionAttributeValues: marshall({ ':new-assigned-to': assignedTo })
   })
 }
 
+/**
+ *  Sets the "started" property in the given game model to "true". The change is reflected in the database and in the 
+ * passed object. 
+ */
 export async function startGame(gameModel: GameModel) {
   
   const gameEntry = modelToEntry(gameModel)

@@ -3,9 +3,9 @@ import { expect } from 'chai'
 import sinon from 'sinon'
 import * as dynamodb from '../../src/services/dynamodb'
 import handler from '../../src/lambda/start-game'
-import { createMockBody } from './testing-utils'
+import { createMockBody } from '../testing-utils'
 import constants from '../../src/utils/constants'
-import { GameModel, PlayerEntry, PlayerModel, UserModel } from '../../src/model/database-model'
+import { GameModel, PlayerModel, UserModel } from '../../src/model/database-model'
 
 afterEach(() => {
   sinon.restore()
@@ -51,7 +51,7 @@ describe("lambda: start-game", () => {
       expect(userId).to.equal("<USER ID>")
       return sampleUser;
     })
-    sinon.stub(dynamodb, "getPlayersByGame").callsFake(async (gameCode: string) => {
+    sinon.stub(dynamodb, "getPlayersInGame").callsFake(async (gameCode: string) => {
       expect(gameCode).to.equal("<GAME CODE>")
       return samplePlayers;
     })
@@ -95,7 +95,7 @@ describe("lambda: start-game", () => {
       expect(userId).to.equal("<USER ID>")
       return sampleUser;
     })
-    sinon.stub(dynamodb, "getPlayersByGame").callsFake(async (gameCode: string) => {
+    sinon.stub(dynamodb, "getPlayersInGame").callsFake(async (gameCode: string) => {
       expect(gameCode).to.equal("<GAME CODE>")
       return samplePlayers;
     })
@@ -104,7 +104,7 @@ describe("lambda: start-game", () => {
     expect(response.statusCode).to.equal(200)
     expect(body).to.deep.equal({
       success: false,
-      message: constants.strings.startGameDne
+      message: constants.strings.tooFewPlayers
     })
   })
 })

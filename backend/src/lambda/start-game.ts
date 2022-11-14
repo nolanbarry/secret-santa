@@ -2,7 +2,7 @@
 
 import { APIGatewayEvent, Context } from 'aws-lambda'
 import { lambda, response, validateRequestBody } from '../utils/utils'
-import { authenticate, getGame, getUser, getPlayersByGame, setPlayerAssignment, startGame } from '../services/dynamodb'
+import { authenticate, getGame, getUser, getPlayersInGame, setPlayerAssignment, startGame } from '../services/dynamodb'
 import { PlayerModel } from '../model/database-model'
 import { ExpectedError } from '../model/error'
 import constants from '../utils/constants'
@@ -15,37 +15,69 @@ const requestParameters = {
   gameCode: String,
 }
 
-let availableAssignments: PlayerModel[] = [];
-let lastPlayerAssignee: PlayerModel;
-let lastPlayerAssigned: PlayerModel | undefined;
-
 async function handler(event: APIGatewayEvent, context: Context) {
   const { authToken, gameCode } = validateRequestBody(event.body, requestParameters)
+
+  let availableAssignments: PlayerModel[] = [];
+  let lastPlayerAssignee: PlayerModel | undefined;
+  let lastPlayerAssigned: PlayerModel | undefined;
 
   // verify authtoken, retrieve user
   let userId = await authenticate(authToken);
   // retrieve game by gameCode
   let game = await getGame(gameCode);
+  if (!game) {
+    return response(200, {success: false, message: constants.strings.gameDne})
+  }
   // retrieve host of game
   let host = await getUser(game!.hostName);
+  if (host!.id != userId) {
+    return response(200, {success: false, message: constants.strings.userIsNotHost})
+  }
 
-  // verify host of game id == user.id
-  if (host!.id == userId) {
-    // make assignments and text/email to everyone
+  let players = await getPlayersInGame(game.code);
 
-    let players = getPlayersByGame(game!.code);
+  if (players.length < 2) {
+    throw new ExpectedError(constants.strings.tooFewPlayers);
+  }
 
-    availableAssignments = shuffleArray(await players);
+  availableAssignments = shuffleArray(players);
 
-    if ((await players).length > 1) {
-      (await players).forEach(assignPlayer)
+  let numPlayers = players.length;
+  lastPlayerAssignee = players.at(0);
+  if (!lastPlayerAssignee) {
+    throw new ExpectedError(constants.strings.playerDne(gameCode, "Unknown Player"));
+  }
+  for(let i = 0; i < numPlayers; i++){
+
+    let player = players.at(i);
+    if (!player) {
+      throw new ExpectedError(constants.strings.playerDne(gameCode, "Unknown Player"));
     }
-    else {
-      return response(200, {success: false, message: constants.strings.startGameDne})
+    
+    let playerAssignment = availableAssignments.pop();
+    if (!playerAssignment) {
+      throw new ExpectedError(constants.strings.playerDne(gameCode, "Unknown Player"));
+    }
+    
+    if (player.displayName == playerAssignment.displayName) {
+      if (availableAssignments.length > 1) {
+        let newPlayerAssignment = availableAssignments.pop();
+        availableAssignments.push(playerAssignment);
+        playerAssignment = newPlayerAssignment;
+      }
+      else {
+        playerAssignment = lastPlayerAssigned;
+        setPlayerAssignment(lastPlayerAssignee, player.displayName);
+      }
     }
   
+    setPlayerAssignment(player, playerAssignment!.displayName);
+    lastPlayerAssignee = player;
+    lastPlayerAssigned = playerAssignment;
+  
     // update game status as started
-    startGame(game!);
+    startGame(game);
     return response(200);
 
   }
@@ -53,31 +85,6 @@ async function handler(event: APIGatewayEvent, context: Context) {
   return response(400);
 
 };
-
-function assignPlayer(player: PlayerModel) {
-
-  let playerAssignment = availableAssignments.pop();
-  if (!playerAssignment) {
-    return;
-  }
-  
-  if (player.displayName == playerAssignment.displayName) {
-    if (availableAssignments.length > 1) {
-      let newPlayerAssignment = availableAssignments.pop();
-      availableAssignments.push(playerAssignment);
-      playerAssignment = newPlayerAssignment;
-    }
-    else {
-      playerAssignment = lastPlayerAssigned;
-      setPlayerAssignment(lastPlayerAssignee, player.displayName);
-    }
-  }
-
-  setPlayerAssignment(player, playerAssignment!.displayName);
-  lastPlayerAssignee = player;
-  lastPlayerAssigned = playerAssignment;
-
-}
 
 function shuffleArray(array: any[]) {
   for (var i = array.length - 1; i > 0; i--) {

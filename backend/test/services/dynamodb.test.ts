@@ -283,7 +283,7 @@ describe("dynamodb:", () => {
   })
 })
 
-describe("dynamodb: getPlayersByGame()", () => {
+describe("dynamodb: getPlayersInGame()", () => {
   it("Succeeds when there are multiple players in a game", async () => {
     const samplePlayers: PlayerEntry[] = [
       {
@@ -301,8 +301,8 @@ describe("dynamodb: getPlayersByGame()", () => {
       Items: samplePlayers.map(p => marshall(p))
     })
 
-    await expect(getPlayersByGame("<GAME CODE>")).to.eventually.deep.equal(samplePlayers.map(p => entryToModel(p)))
-    expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(1)
+    await expect(getPlayersInGame("<GAME CODE>")).to.eventually.deep.equal(samplePlayers.map(p => entryToModel(p)))
+    expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(2)
   })
 })
 
