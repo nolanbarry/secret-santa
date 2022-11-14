@@ -82,7 +82,9 @@ const strings = {
   gameDne: (gameCode: string) => `Game ${gameCode} does not exist`,
   playerDne: (gameCode: string, displayName: string) => `Player ${displayName} in does not exist in ${gameCode}`,
   authorizedUserDne: 'Authorized user does not exist',
-  userIsNotHost: 'Insufficient permissions to perform action'
+  userIsNotHost: 'Insufficient permissions to perform action',
+  sesSource: "secretsantaexchange428@gmail.com",
+  emailCharset: "UTF-8"
 }
 
 export default {
@@ -113,5 +115,5 @@ export default {
       maxLength: 24
     }
   },
-  strings
+  strings,
 } as const
