@@ -311,9 +311,9 @@ async function extendExpirationDate(authModel: AuthModel, extensionTime: number)
   await ddb.updateItem({
     TableName: schema.auth.name,
     Key: getKey(schema.auth, authEntry),
-    UpdateExpression: "#ttl = :new-expiration",
+    UpdateExpression: "#ttl = :newExpiration",
     ExpressionAttributeNames: { '#ttl': schema.auth.ttlKey },
-    ExpressionAttributeValues: marshall({ ':new-expiration': newExpirationDate })
+    ExpressionAttributeValues: marshall({ ':newExpiration': newExpirationDate })
   })
   authModel.expirationDate = newExpirationDate
 }
@@ -327,9 +327,9 @@ async function setAuthToken(authModel: AuthModel, token: string) {
   await ddb.updateItem({
     TableName: schema.auth.name,
     Key: getKey(schema.auth, authEntry),
-    UpdateExpression: "#token = :new-token",
+    UpdateExpression: "#token = :newToken",
     ExpressionAttributeNames: { '#token': schema.auth.schema.authToken },
-    ExpressionAttributeValues: marshall({ ':new-token': token })
+    ExpressionAttributeValues: marshall({ ':newToken': token })
   })
   authModel.authToken = token
 }
@@ -343,9 +343,9 @@ export async function setPlayerAssignment(playerModel: PlayerModel, assignedTo: 
   await ddb.updateItem({
     TableName: schema.players.name,
     Key: getKey(schema.players, playerEntry),
-    UpdateExpression: "#assigned-to = :new-assigned-to",
-    ExpressionAttributeNames: { '#assigned-to': schema.players.schema.assignedTo },
-    ExpressionAttributeValues: marshall({ ':new-assigned-to': assignedTo })
+    UpdateExpression: "#assignedTo = :newAssignedTo",
+    ExpressionAttributeNames: { '#assignedTo': schema.players.schema.assignedTo },
+    ExpressionAttributeValues: marshall({ ':newAssignedTo': assignedTo })
   })
 }
 
@@ -360,7 +360,7 @@ export async function startGame(gameModel: GameModel) {
   await ddb.updateItem({
     TableName: schema.games.name,
     Key: getKey(schema.games, gameEntry),
-    UpdateExpression: "#started = :new-started",
+    UpdateExpression: "#started = :newStarted",
     ExpressionAttributeNames: { '#started': schema.games.schema.started },
     ExpressionAttributeValues: marshall({ ':started': true })
   })

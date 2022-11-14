@@ -17,18 +17,15 @@ describe("lambda: start-game", () => {
       "displayName" : "<DISPLAY NAME>",
       "code" : "<GAME CODE>",
       "started" : false,
-      "hostName": "<USER ID>"
+      "hostName": "<HOST NAME>"
     }
-    const sampleUser : UserModel = {
+    const sampleHost : PlayerModel = {
       "id" : "<USER ID>", 
-      "email" : "<EMAIL"
+      "displayName": "<HOST NAME>",
+      "gameCode": "<GAME CODE>",
     }
     const samplePlayers: PlayerModel[] = [
-      {
-        "displayName": "Player 1",
-        "gameCode": "<GAME CODE>",
-        "id": "<USER ID>"
-      },
+      sampleHost,
       {
         "displayName": "Player 2",
         "gameCode": "<GAME CODE>",
@@ -47,13 +44,17 @@ describe("lambda: start-game", () => {
       expect(gameCode).to.equal("<GAME CODE>")
       return sampleGame;
     })
-    sinon.stub(dynamodb, "getUser").callsFake(async (userId: string) => {
-      expect(userId).to.equal("<USER ID>")
-      return sampleUser;
+    sinon.stub(dynamodb, "getPlayer").callsFake(async (gameCode: string, displayName: string) => {
+      expect(gameCode).to.equal("<GAME CODE>")
+      expect(displayName).to.equal("<HOST NAME>")
+      return sampleHost;
     })
     sinon.stub(dynamodb, "getPlayersInGame").callsFake(async (gameCode: string) => {
       expect(gameCode).to.equal("<GAME CODE>")
       return samplePlayers;
+    })
+    sinon.stub(dynamodb, "setPlayerAssignment").callsFake(async (playerModel, assignedTo) => {
+      expect(playerModel.displayName).to.not.equal(assignedTo)
     })
     const response = await handler(...createMockBody({ authToken: "<AUTH TOKEN>", gameCode: "<GAME CODE>"}))
     const body = JSON.parse(response.body)
@@ -66,21 +67,18 @@ describe("lambda: start-game", () => {
       "displayName" : "<DISPLAY NAME>",
       "code" : "<GAME CODE>",
       "started" : false,
-      "hostName": "<USER ID>"
+      "hostName": "<HOST NAME>"
     }
-    const sampleUser : UserModel = {
+    const sampleHost : PlayerModel = {
       "id" : "<USER ID>", 
-      "email" : "<EMAIL"
+      "displayName": "<HOST NAME>",
+      "gameCode": "<GAME CODE>",
     }
     const samplePlayers: PlayerModel[] = [
-      {
-        "displayName": "Player 1",
-        "gameCode": "<GAME CODE>",
-        "id": "<USER ID>"
-      }
+      sampleHost
     ]
     sinon.stub(dynamodb, "startGame").callsFake(async (gameModel: GameModel) => {
-      expect(gameModel).to.equal(sampleGame)
+      expect(false, "Start game not called").to.be.true
       return true;
     })
     sinon.stub(dynamodb, "authenticate").callsFake(async (authToken: string) => {
@@ -91,9 +89,10 @@ describe("lambda: start-game", () => {
       expect(gameCode).to.equal("<GAME CODE>")
       return sampleGame;
     })
-    sinon.stub(dynamodb, "getUser").callsFake(async (userId: string) => {
-      expect(userId).to.equal("<USER ID>")
-      return sampleUser;
+    sinon.stub(dynamodb, "getPlayer").callsFake(async (gameCode: string, displayName: string) => {
+      expect(gameCode).to.equal("<GAME CODE>")
+      expect(displayName).to.equal("<HOST NAME>")
+      return sampleHost;
     })
     sinon.stub(dynamodb, "getPlayersInGame").callsFake(async (gameCode: string) => {
       expect(gameCode).to.equal("<GAME CODE>")

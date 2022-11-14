@@ -2,7 +2,7 @@
 
 import { APIGatewayEvent, Context } from 'aws-lambda'
 import { lambda, response, validateRequestBody } from '../utils/utils'
-import { authenticate, getGame, getUser, getPlayersInGame, setPlayerAssignment, startGame } from '../services/dynamodb'
+import { authenticate, getGame, getUser, getPlayersInGame, setPlayerAssignment, startGame, getPlayer } from '../services/dynamodb'
 import { PlayerModel } from '../model/database-model'
 import { ExpectedError } from '../model/error'
 import constants from '../utils/constants'
@@ -18,85 +18,45 @@ const requestParameters = {
 async function handler(event: APIGatewayEvent, context: Context) {
   const { authToken, gameCode } = validateRequestBody(event.body, requestParameters)
 
-  let availableAssignments: PlayerModel[] = [];
-  let lastPlayerAssignee: PlayerModel | undefined;
-  let lastPlayerAssigned: PlayerModel | undefined;
-
-  // verify authtoken, retrieve user
+  // verify authtoken, retrieve user making request
   let userId = await authenticate(authToken);
+
   // retrieve game by gameCode
   let game = await getGame(gameCode);
-  if (!game) {
-    return response(200, {success: false, message: constants.strings.gameDne})
-  }
-  // retrieve host of game
-  let host = await getUser(game!.hostName);
-  if (host!.id != userId) {
-    return response(200, {success: false, message: constants.strings.userIsNotHost})
-  }
+  if (!game) throw new ExpectedError(constants.strings.gameDne(gameCode))
 
+  // retrieve host of game, verify user starting game is the host
+  let host = await getPlayer(game.code, game.hostName) as PlayerModel;
+  if (host.id != userId) throw new ExpectedError(constants.strings.userIsNotHost)
+
+  // retrieve players, abort if not enough players to start the game
   let players = await getPlayersInGame(game.code);
+  if (players.length < 2) throw new ExpectedError(constants.strings.tooFewPlayers);
 
-  if (players.length < 2) {
-    throw new ExpectedError(constants.strings.tooFewPlayers);
+  const assignmentOrder = shuffleArray(players);
+
+  for (let i = 0; i < assignmentOrder.length; i++) {
+    const secretSanta = assignmentOrder.at(i - 1)
+    const recipient = assignmentOrder.at(i)
+    setPlayerAssignment(secretSanta, recipient.displayName)
   }
 
-  availableAssignments = shuffleArray(players);
-
-  let numPlayers = players.length;
-  lastPlayerAssignee = players.at(0);
-  if (!lastPlayerAssignee) {
-    throw new ExpectedError(constants.strings.playerDne(gameCode, "Unknown Player"));
-  }
-  for(let i = 0; i < numPlayers; i++){
-
-    let player = players.at(i);
-    if (!player) {
-      throw new ExpectedError(constants.strings.playerDne(gameCode, "Unknown Player"));
-    }
-    
-    let playerAssignment = availableAssignments.pop();
-    if (!playerAssignment) {
-      throw new ExpectedError(constants.strings.playerDne(gameCode, "Unknown Player"));
-    }
-    
-    if (player.displayName == playerAssignment.displayName) {
-      if (availableAssignments.length > 1) {
-        let newPlayerAssignment = availableAssignments.pop();
-        availableAssignments.push(playerAssignment);
-        playerAssignment = newPlayerAssignment;
-      }
-      else {
-        playerAssignment = lastPlayerAssigned;
-        setPlayerAssignment(lastPlayerAssignee, player.displayName);
-      }
-    }
-  
-    setPlayerAssignment(player, playerAssignment!.displayName);
-    lastPlayerAssignee = player;
-    lastPlayerAssigned = playerAssignment;
-  
-    // update game status as started
-    startGame(game);
-    return response(200);
-
-  }
-  
-  return response(400);
-
-};
+  // update game status as started
+  startGame(game);
+  return response(200);
+}
 
 function shuffleArray(array: any[]) {
-  for (var i = array.length - 1; i > 0; i--) {
-  
-      // Generate random number
-      var j = Math.floor(Math.random() * (i + 1));
-                  
-      var temp = array[i];
-      array[i] = array[j];
-      array[j] = temp;
+  for (let i = array.length - 1; i > 0; i--) {
+
+    // Generate random number
+    let j = Math.floor(Math.random() * (i + 1));
+
+    let temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
   }
-      
+
   return array;
 }
 
