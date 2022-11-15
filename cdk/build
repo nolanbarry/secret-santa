@@ -23,7 +23,7 @@ def build():
 
     print(f"\n🔨 {Style.BRIGHT+Fore.CYAN}(4/4) Installing node_modules in layer/nodejs folder{Style.RESET_ALL}")
     packages = Popen(
-        "cd ../backend && mkdir -p layer/nodejs && cp package.json package-lock.json layer/nodejs && cd layer/nodejs && npm i".split(), shell=True).wait()
+        "cd ../backend && mkdir -p layer/nodejs && cp package.json package-lock.json layer/nodejs && cd layer/nodejs && npm i", shell=True).wait()
     if packages > 0:
         return packages
 
