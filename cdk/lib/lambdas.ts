@@ -1,5 +1,5 @@
 import { Duration } from "aws-cdk-lib"
-import { ManagedPolicy, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam"
+import { Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal } from "aws-cdk-lib/aws-iam"
 import { Code, Function, Runtime, LayerVersion } from "aws-cdk-lib/aws-lambda"
 import { SecretSantaStack } from "./secret-santa-stack"
 import { tableConfigurations, Tables } from "./tables"
@@ -179,6 +179,16 @@ export function createLambdas(scope: SecretSantaStack, lambdaRole: Role): Lambda
   return lambdas;
 }
 
+/** Custom policies used by lambda role. */
+const policies = [
+  new PolicyStatement({
+    actions: ["ses:SendEmail", "ses:SendRawEmail"],
+    effect: Effect.ALLOW,
+    resources: ['*']
+  })
+]
+
+
 /**
  * Creates the role used by all Lambdas. Pass the dynamodb tables so that the Lambdas
  * can be granted read/write access. Create `tables` with `./tables.createTables`
@@ -192,6 +202,10 @@ export function createLambdaRole(scope: SecretSantaStack, tables: Tables) {
 
   for (const table of Object.values(tables)) {
     table.grantReadWriteData(role)
+  }
+
+  for (const policy of policies) {
+    role.addToPolicy(policy)
   }
 
   return role
