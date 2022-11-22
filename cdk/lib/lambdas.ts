@@ -182,7 +182,7 @@ export function createLambdas(scope: SecretSantaStack, lambdaRole: Role): Lambda
 /** Custom policies used by lambda role. */
 const policies = [
   new PolicyStatement({
-    actions: ["ses:SendEmail", "ses:SendRawEmail"],
+    actions: ["ses:SendEmail", "ses:SendRawEmail", "ses:GetEmailIdentity"],
     effect: Effect.ALLOW,
     resources: ['*']
   })
