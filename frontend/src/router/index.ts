@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 
 import '@/assets/scss/main.scss';
-import AuthService from '@/services/AuthService';
+import { getAuth } from '@/services/Network';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,13 +23,10 @@ const router = createRouter({
     {
       path: '/otp',
       name: 'otp',
-      meta: {
-        requiresAuth: true
-      },
       component: () => import('../views/OTPView.vue')
     },
     {
-      path: '/joinExchange',
+      path: '/join-exchange',
       name: 'joinExchange',
       meta: {
         requiresAuth: true
@@ -37,7 +34,7 @@ const router = createRouter({
       component: () => import('../views/JoinExchangeView.vue')
     },
     {
-      path: '/createExchange',
+      path: '/create-exchange',
       name: 'createExchange',
       meta: {
         requiresAuth: true
@@ -45,7 +42,7 @@ const router = createRouter({
       component: () => import('../views/CreateExchangeView.vue')
     },
     {
-      path: '/chooseExchange',
+      path: '/choose-exchange',
       name: 'chooseExchange',
       meta: {
         requiresAuth: true
@@ -53,7 +50,7 @@ const router = createRouter({
       component: () => import('../views/ChooseExchangeView.vue')
     },
     {
-      path: '/userView',
+      path: '/user-view',
       name: 'userView',
       meta: {
         requiresAuth: true
@@ -71,12 +68,12 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
 
   if (to.matched.some(record => record.meta.requiresAuth)) {
     // this route requires auth, check if logged in
     // if not, redirect to login page.
-    if (!AuthService.getAuth()) {
+    if (!(await getAuth())) {
       sessionStorage.setItem('redirectPath', to.path);
       next({ name: 'login' })
     } else {

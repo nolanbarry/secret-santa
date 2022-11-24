@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { describe, it } from 'mocha'
-import { getModeOfContact, ModeOfContact} from '../../src/model/modeofcontact'
+import { getModeOfContact, ModeOfContact} from '../../src/model/mode-of-contact'
 
 const validEmails = [
   "banana@apple.com",
