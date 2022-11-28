@@ -101,8 +101,8 @@ export async function authenticate(authToken: string): Promise<string> {
  */
 export async function getPlayersForUser(userId: string): Promise<PlayerModel[]> {
   // TODO: Instead of a raw query, this should be querying on an index that partitions by user id.
-  const response = await ddb.query({
-    KeyConditionExpression: '#id = :id',
+  const response = await ddb.scan({
+    FilterExpression: '#id = :id',
     ExpressionAttributeNames: {
       '#id': schema.players.schema.id
     },
