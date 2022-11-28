@@ -20,11 +20,16 @@ Located in `create-game.ts`
 Located in `end-game.ts`
 ### Request Body
 ```json
-TBD
+{
+  authToken: string,
+  gameCode: string
+}
 ```
 ### Response Body
 ```json
-TBD
+{
+  success: true
+}
 ```
 
 # `/game/players`
@@ -160,11 +165,14 @@ TBD
 Located in `start-game.ts`
 ### Request Body
 ```json
-TBD
+{
+  authToken: string,
+  gameCode: string,
+}
 ```
 ### Respone **Body*
 ```json
-TBD
+None
 ```
 # `/submitotp`
 Located in `submit-otp.ts`
