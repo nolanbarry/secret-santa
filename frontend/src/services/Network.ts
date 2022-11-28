@@ -60,6 +60,23 @@ export async function submitOtp() {
     }
 }
 
+export async function validateAuth() {
+    let body = {
+        "id": "123",
+        "auth": "123"
+    }
+    try {
+        const response = await fetch(`${BASE_URL}/user/validateauth`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body)
+        })
+        return await response.json();
+    } catch(e) {
+        console.log(e);
+    }
+}
+
 export async function getGame() {
     let body = {
         "authToken": "123",
