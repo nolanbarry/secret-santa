@@ -1,5 +1,5 @@
 /* 
- * Checks authtoken against auth
+ * Checks authtoken and makes sure the user is authorized.
  */
 
 import { APIGatewayEvent, Context } from 'aws-lambda'
