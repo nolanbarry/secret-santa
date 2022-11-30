@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
+import '@/assets/scss/main.scss';
 
 /* From Fontawesome, which has lots of nice/fun free icons */
 /* https://fontawesome.com/docs/web/use-with/vue/ */

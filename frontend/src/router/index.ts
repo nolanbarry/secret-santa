@@ -1,8 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 
-import '@/assets/scss/main.scss';
-import { getAuth } from '@/services/Network';
+import { getAuth } from '@/services/MockNetwork';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -50,12 +49,13 @@ const router = createRouter({
       component: () => import('../views/ChooseExchangeView.vue')
     },
     {
-      path: '/user-view',
+      path: '/user-view/:gameid',
       name: 'userView',
       meta: {
         requiresAuth: true
       },
-      component: () => import('../views/UserView.vue')
+      component: () => import('../views/UserView.vue'),
+      props: { default: true }
     }
   ]
 })
@@ -66,7 +66,7 @@ router.beforeEach(async (to, from, next) => {
     // this route requires auth, check if logged in
     // if not, redirect to login page.
     if (!(await getAuth())) {
-      sessionStorage.setItem('redirectPath', to.path);
+      sessionStorage.setItem('redirectName', to.name ? to.name.toString() : '/');
       next({ name: 'login' })
     } else {
       next() // go to wherever I'm going
