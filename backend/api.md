@@ -196,7 +196,6 @@ Located in `validate-auth.ts`
 ### Request Body
 ```json
 {
-  id: string,
   auth: string
 }
 ```
