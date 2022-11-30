@@ -2,21 +2,19 @@
 import ChooseDate from '../components/ChooseDate.vue'
 import router from '@/router';
 import { ref } from 'vue'
-import { createGame } from '@/services/MockNetwork';
+import { createGame } from '@/services/Network';
 
 let loading = ref(false)
 let exchangeName = ref()
 let hostDisplayName = ref()
 let exchangeDate = ref()
 
-let authToken = history.state.authToken
-
 const createExchangeHandler = async () => {
   loading.value = true;
 
-  let data = await createGame(authToken, exchangeName.value, hostDisplayName.value, exchangeDate.value);
+  let data = await createGame(exchangeName.value, hostDisplayName.value, exchangeDate.value);
 
-  router.push({ name: "userView", params: { gameid: data.gameCode }, state: { authToken } })
+  router.push({ name: "userView", params: { gameid: data.gameCode } })
 }
 </script>
 
