@@ -1,19 +1,31 @@
 <script setup lang="ts">
 import router from '@/router';
 import TitleLogo from '../components/TitleLogo.vue';
+import ErrorMessage from '../components/ErrorMessage.vue';
 import { login } from '@/services/Network';
 import { ref } from 'vue'
 
 let loading = ref(false)
 let userEmail = ref()
+let errorMessage = ref("")
+let errorMessageSet = ref(false)
 
 const loginHandler = async () => {
     loading.value = true;
     let data = await login(userEmail.value);
     let userid = data.userId
-    
-    // Head to OTP Page to submit
-    router.push({ name: "otp", state: { userid } });
+    errorMessageSet.value = false
+
+    if (data.success == false) {
+        errorMessageSet.value = true
+        errorMessage.value = "Error logging in. Please verify your email address is correct and try refreshing the page."
+        loading.value = false
+    } else {
+
+        // Head to OTP Page to submit
+        loading.value = false;
+        router.push({ name: "otp", state: { userid } });
+    }
 }
 </script>
 
@@ -21,7 +33,8 @@ const loginHandler = async () => {
     <main>
         <TitleLogo />
         <div class="text-input-div">
-            <input class="text-input" type="text" v-model="userEmail" placeholder="Enter your Email" />
+            <input class="text-input" type="text" v-model="userEmail"
+                placeholder="Enter your Email" />
         </div>
         <div class="button-div">
             <button @click="loginHandler" class="button">
@@ -30,6 +43,11 @@ const loginHandler = async () => {
                 </div>
             </button>
         </div>
+        <ErrorMessage v-if="errorMessageSet">
+            <template #message>
+                {{ errorMessage }}
+            </template>
+        </ErrorMessage>
     </main>
 </template>
 

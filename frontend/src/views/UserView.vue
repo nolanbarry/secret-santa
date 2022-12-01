@@ -11,6 +11,7 @@ let hasAssignment = ref(false);
 let gameid = <string>route.params.gameid;
 let displayName = history.state.displayName;
 let exchangePlayers = ref();
+let loading = ref(true);
 
 const getExchange = async () => {
   let exchange_data = await getGame(gameid);
@@ -31,6 +32,7 @@ const getExchange = async () => {
 
   let list_of_players = await getGamePlayers(gameid);
   exchangePlayers.value = list_of_players.players;
+  loading.value = false;
 }
 
 getExchange();
@@ -40,37 +42,42 @@ getExchange();
   <div>
     <HamburgerPopout></HamburgerPopout>
     <main class="content-wrapper">
-      <div class="title-wrapper">
-        <header class="exchange-title">
-          {{ exchange?.exchangeName }}
-        </header>
-      </div>
-      <div class="exchange-date-wrapper">
-        <h1 class="exchange-date">
-          {{ exchange?.exchangeDate }}
-        </h1>
-      </div>
-      <div class="assignment-div">
-        <p class="assignment-label">
-          {{ exchange?.displayName }}'s Assignment:
-        </p>
-        <p class="assignment">
-          <em v-if="hasAssignment">{{ exchange?.assignedTo }}</em>
-          <em v-else>Pending</em>
-        </p>
-      </div>
-      <div>
-        <h2>
-          Join Code: {{ exchange?.gameCode }}
-        </h2>
-      </div>
-      <div class="player-list-div">
-        <h2 class="player-list-label">
-          Player List:
-        </h2>
-      </div>
-      <div class="column" v-for="player in exchangePlayers">
-        <p>{{ player.displayName }}</p>
+      <div v-if="loading" class="loading-spinner" id="loading"></div>
+      <div v-else>
+        <div class="title-wrapper">
+          <header class="exchange-title">
+            {{ exchange?.exchangeName }}
+          </header>
+        </div>
+        <div class="column-item-wrapper">
+          <h1 class="exchange-date">
+            {{ exchange?.exchangeDate }}
+          </h1>
+        </div>
+        <div class="column-item-wrapper">
+          <div class="assignment-div">
+            <p class="assignment-label">
+              {{ exchange?.displayName }}'s Assignment:
+            </p>
+            <p class="assignment">
+              <em v-if="hasAssignment">{{ exchange?.assignedTo }}</em>
+              <em v-else>Pending</em>
+            </p>
+          </div>
+        </div>
+        <div class="column-item-wrapper">
+          <h2>
+            Join Code: {{ exchange?.gameCode }}
+          </h2>
+        </div>
+        <div class="player-list-div">
+          <h2 class="player-list-label">
+            Player List:
+          </h2>
+        </div>
+        <div class="column" v-for="player in exchangePlayers">
+          <p>{{ player.displayName }}</p>
+        </div>
       </div>
     </main>
   </div>
@@ -99,7 +106,7 @@ getExchange();
   text-align: center;
 }
 
-.exchange-date-wrapper {
+.column-item-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;

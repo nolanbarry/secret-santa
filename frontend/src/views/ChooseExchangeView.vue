@@ -3,6 +3,7 @@ import { getPlayers, getGame } from '@/services/Network';
 import { ref } from 'vue'
 
 let exchanges = ref();
+let loading = ref(true)
 
 const getExchanges = async () => {
   let playersData = await getPlayers();
@@ -22,6 +23,7 @@ const getExchanges = async () => {
     data.push(exchange)
   }
   exchanges.value = data
+  loading.value = false;
 }
 
 getExchanges();
@@ -36,12 +38,15 @@ getExchanges();
       </header>
     </div>
     <div class="choose-button-div">
-      <div v-for="exchange in exchanges">
-        <router-link
-          :to="{ name: 'userView', params: { gameid: exchange.gameCode }, state: { displayName: exchange.displayName } }"
-          class="choose-button">
-          {{ exchange.exchangeName }}: {{ exchange.displayName }}
-        </router-link>
+      <div v-if="loading" class="loading-spinner" id="loading"></div>
+      <div v-else>
+        <div v-for="exchange in exchanges">
+          <router-link
+            :to="{ name: 'userView', params: { gameid: exchange.gameCode }, state: { displayName: exchange.displayName } }"
+            class="choose-button">
+            {{ exchange.exchangeName }}: {{ exchange.displayName }}
+          </router-link>
+        </div>
       </div>
     </div>
   </main>

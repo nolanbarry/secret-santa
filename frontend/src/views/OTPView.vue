@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import TitleLogo from '../components/TitleLogo.vue'
+import ErrorMessage from '@/components/ErrorMessage.vue';
 import router from '@/router';
 import { ref } from 'vue'
 import { submitOtp } from '@/services/Network';
@@ -8,14 +9,26 @@ let loading = ref(false)
 let userid = history.state.userid
 let otp = ref()
 
+let errorMessageSet = ref(false)
+let errorMessage = ref("")
+
 const submitOTPHandler = async () => {
+  console.log(userid)
   loading.value = true;
 
   let data = await submitOtp(userid, otp.value)
-  router.push({name: sessionStorage.getItem('redirectName')?.toString()} || '/');
+  errorMessageSet.value = false;
 
-  //Cleanup redirectPath
-  sessionStorage.removeItem('redirectName');
+  if (data.success == false) {
+    errorMessageSet.value = true;
+    errorMessage.value = "Error logging in. Verify that the email and one time code you provided are correct."
+    loading.value = false;
+  } else {
+    router.push({ name: sessionStorage.getItem('redirectName')?.toString() } || '/');
+
+    //Cleanup redirectPath
+    sessionStorage.removeItem('redirectName');
+  }
 }
 </script>
 
@@ -24,7 +37,8 @@ const submitOTPHandler = async () => {
     <TitleLogo />
     <div class="text-input-div">
       <p class="input-label">Check your email for a one-time login code</p>
-      <input class="text-input" type="text" v-model="otp" placeholder="Code from email" />
+      <input class="text-input" type="text" v-model="otp"
+        placeholder="Code from email" />
     </div>
     <div class="button-div">
       <button @click="submitOTPHandler" class="button">
@@ -32,6 +46,11 @@ const submitOTPHandler = async () => {
         <div v-if="loading" class="button-loading-spinner" id="loading"></div>
       </button>
     </div>
+    <ErrorMessage v-if="errorMessageSet">
+      <template #message>
+        {{ errorMessage }}
+      </template>
+    </ErrorMessage>
   </main>
 </template>
 
