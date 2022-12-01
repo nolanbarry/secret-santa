@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import HamburgerPopout from '@/components/HamburgerPopout.vue';
-import { getGame, getPlayer, getGamePlayers } from '@/services/Network';
+import { getGame, getPlayer, getGamePlayers, startGame } from '@/services/Network';
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import ErrorMessage from '@/components/ErrorMessage.vue';
@@ -8,14 +8,19 @@ import ErrorMessage from '@/components/ErrorMessage.vue';
 const route = useRoute();
 
 let exchange = ref();
+let assignedTo = ref();
 let hasAssignment = ref(false);
 let gameid = <string>route.params.gameid;
 let displayName = history.state.displayName;
 let exchangePlayers = ref();
+
+let buttonLoading = ref(false);
 let loading = ref(true);
 
 let errorMessageSet = ref(false)
 let errorMessage = ref("")
+
+let isHost = ref(false)
 
 const getExchange = async () => {
   let exchange_data = await getGame(gameid);
@@ -31,14 +36,17 @@ const getExchange = async () => {
     playerId: player_data.player.id,
     gameCode: exchange_data.game.code,
     displayName: player_data.player.displayName,
-    assignedTo: player_data.player.assignedTo,
     exchangeName: exchange_data.game.displayName,
     hostName: exchange_data.game.hostName,
     started: exchange_data.game.started,
     exchangeDate: exchange_data.game?.exchangeDate
   }
+  assignedTo.value = player_data.player.assignedTo;
   if (player_data.player.assignedTo) {
     hasAssignment.value = true;
+  }
+  if (exchange.value.hostName === exchange.value.displayName) {
+    isHost.value = true;
   }
 
   let list_of_players = await getGamePlayers(gameid);
@@ -51,6 +59,34 @@ const getExchange = async () => {
 }
 
 getExchange();
+
+const startExchange = async () => {
+  buttonLoading.value = true;
+  let data = await startGame(gameid);
+
+  errorMessageSet.value = false
+
+  if (data.success == false) {
+    errorMessageSet.value = true
+    errorMessage.value = "There was an error sending out gift assignments. Please refresh the page and try again."
+    buttonLoading.value = false
+  } else {
+    let player_data = await getPlayer(gameid, displayName);
+
+    if (player_data.success == false) {
+      errorMessageSet.value = true;
+      errorMessage.value = "There was an error retrieving your gift assignment. Please refresh the page and try again."
+    } else {
+      if (player_data.player.assignedTo) {
+        hasAssignment.value = true;
+        assignedTo.value = player_data.player.assignedTo;
+      }
+    }
+
+    buttonLoading.value = false
+
+  }
+}
 </script>
 
 <template>
@@ -75,10 +111,14 @@ getExchange();
               {{ exchange?.displayName }}'s Assignment:
             </p>
             <p class="assignment">
-              <em v-if="hasAssignment">{{ exchange?.assignedTo }}</em>
+              <em v-if="hasAssignment">{{ assignedTo }}</em>
               <em v-else>Pending</em>
             </p>
           </div>
+          <button @click="startExchange" class="assignment-button" v-if="isHost">
+            <div v-if="!buttonLoading">Send out Assignments</div>
+            <div v-if="buttonLoading" class="button-loading-spinner" id="loading"></div>
+          </button>
         </div>
         <div class="column-item-wrapper">
           <h2>
@@ -91,7 +131,8 @@ getExchange();
           </h2>
         </div>
         <div class="column" v-for="player in exchangePlayers">
-          <p>{{ player.displayName }}</p>
+          <p v-if="player.displayName === exchange.hostName">{{ player.displayName }} (Host)</p>
+          <p v-else>{{ player.displayName }}</p>
         </div>
       </div>
     </main>
@@ -151,16 +192,18 @@ getExchange();
   margin-bottom: 1rem;
 
   border: none;
-  background-color: #A74141;
+  background-color: #D9D9D9;
   // box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  border-radius: 18px;
+  // border-radius: 18px;
   width: 25em;
-  padding: 0.3em;
+  // padding: 0.3em;
+  padding: 1em;
+
 }
 
 .assignment-label {
   text-decoration: none;
-  color: white;
+  color: black;
   font-family: 'Inter' sans-serif;
   font-size: 1.2rem;
   justify-content: center;
@@ -168,7 +211,7 @@ getExchange();
 
 .assignment {
   text-decoration: none;
-  color: white;
+  color: black;
   font-family: 'Inter' sans-serif;
   font-size: 1.2rem;
   justify-content: center;
@@ -211,5 +254,39 @@ getExchange();
 .row {
   display: flex;
   flex-direction: row;
+}
+
+.assignment-button {
+  margin: 1.5rem;
+  margin-top: 0.5rem;
+
+  // background-color: #D9D9D9;
+
+  width: 12em;
+  height: 2em;
+  padding: 0.2em;
+  text-align: center;
+  text-decoration: none;
+  font-family: 'Inter' sans-serif;
+  font-size: 1rem;
+  justify-content: center;
+  align-items: center;
+
+  display: flex;
+
+  border: none;
+  background-color: #A74141;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 40px;
+  
+  color: white;
+  cursor: pointer;
+}
+
+.assignment-button:active {
+  transform: scale(0.98);
+  /* Scaling button to 0.98 to its original size */
+  box-shadow: 3px 2px 22px 1px rgba(0, 0, 0, 0.24);
+  /* Lowering the shadow */
 }
 </style>
