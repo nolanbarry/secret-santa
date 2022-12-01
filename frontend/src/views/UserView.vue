@@ -3,6 +3,7 @@ import HamburgerPopout from '@/components/HamburgerPopout.vue';
 import { getGame, getPlayer, getGamePlayers } from '@/services/Network';
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
+import ErrorMessage from '@/components/ErrorMessage.vue';
 
 const route = useRoute();
 
@@ -13,9 +14,19 @@ let displayName = history.state.displayName;
 let exchangePlayers = ref();
 let loading = ref(true);
 
+let errorMessageSet = ref(false)
+let errorMessage = ref("")
+
 const getExchange = async () => {
   let exchange_data = await getGame(gameid);
   let player_data = await getPlayer(gameid, displayName);
+  errorMessageSet.value = false;
+
+  if (exchange_data.success == false || player_data.success == false) {
+    errorMessageSet.value = true;
+    errorMessage.value = "There was an error loading your gift exchange. Please refresh and try again."
+  }
+
   exchange.value = {
     playerId: player_data.player.id,
     gameCode: exchange_data.game.code,
@@ -31,6 +42,10 @@ const getExchange = async () => {
   }
 
   let list_of_players = await getGamePlayers(gameid);
+  if (list_of_players.success == false) {
+    errorMessageSet.value = true;
+    errorMessage.value = "There was an error loading the players in your gift exchange. Please refresh and try again."
+  }
   exchangePlayers.value = list_of_players.players;
   loading.value = false;
 }
@@ -40,7 +55,7 @@ getExchange();
 
 <template>
   <div>
-    <HamburgerPopout></HamburgerPopout>
+    <HamburgerPopout />
     <main class="content-wrapper">
       <div v-if="loading" class="loading-spinner" id="loading"></div>
       <div v-else>
@@ -80,6 +95,11 @@ getExchange();
         </div>
       </div>
     </main>
+    <ErrorMessage v-if="errorMessageSet">
+      <template #message>
+        {{ errorMessage }}
+      </template>
+    </ErrorMessage>
   </div>
 </template>
 

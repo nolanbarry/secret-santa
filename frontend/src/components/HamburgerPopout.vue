@@ -9,15 +9,20 @@
       <div :class="['flyout-menu', { 'open': open }]" ref="flyout"
         :style="`transform: translateX(-${!open ? flyout?.clientWidth ?? 10000 : 0}px)`">
         <div class="menu-title">Menu</div>
-        <router-link :to="{ name: 'chooseExchange' }">
+        <router-link :to="{ name: 'home' }">
+          Home
+        </router-link>
+        <router-link :to="{ name: 'chooseExchange' }" v-if="!isAuthPage">
           View my Exchange List</router-link>
-        <router-link :to="{ name: 'joinExchange' }">
+        <router-link :to="{ name: 'joinExchange' }" v-if="!isAuthPage">
           Join Exchange
         </router-link>
-        <router-link :to="{ name: 'createExchange' }">
+        <router-link :to="{ name: 'createExchange' }" v-if="!isAuthPage">
           Create Exchange
         </router-link>
-        <div @click="signOut">Sign Out</div>
+        <div @click="signOut" v-if="!isAuthPage">
+          Sign Out
+        </div>
       </div>
     </div>
   </div>
@@ -34,6 +39,10 @@ const open = ref(false)
 /* https://vuejs.org/guide/typescript/composition-api.html#typing-template-refs */
 const hamburger = ref<HTMLInputElement | null>()
 const flyout = ref<HTMLInputElement | null>()
+
+const props = defineProps({
+  isAuthPage: Boolean
+})
 
 const clickListener = (event: MouseEvent) => {
   const clickTarget = event.target as HTMLInputElement

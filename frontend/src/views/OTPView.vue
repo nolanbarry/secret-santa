@@ -4,6 +4,7 @@ import ErrorMessage from '@/components/ErrorMessage.vue';
 import router from '@/router';
 import { ref } from 'vue'
 import { submitOtp } from '@/services/Network';
+import HamburgerPopout from '@/components/HamburgerPopout.vue';
 
 let loading = ref(false)
 let userid = history.state.userid
@@ -34,6 +35,7 @@ const submitOTPHandler = async () => {
 
 <template>
   <main>
+    <HamburgerPopout :isAuthPage="true" />
     <TitleLogo />
     <div class="text-input-div">
       <p class="input-label">Check your email for a one-time login code</p>

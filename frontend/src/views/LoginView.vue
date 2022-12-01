@@ -4,6 +4,7 @@ import TitleLogo from '../components/TitleLogo.vue';
 import ErrorMessage from '../components/ErrorMessage.vue';
 import { login } from '@/services/Network';
 import { ref } from 'vue'
+import HamburgerPopout from '@/components/HamburgerPopout.vue';
 
 let loading = ref(false)
 let userEmail = ref()
@@ -31,6 +32,7 @@ const loginHandler = async () => {
 
 <template>
     <main>
+        <HamburgerPopout :isAuthPage="true" />
         <TitleLogo />
         <div class="text-input-div">
             <input class="text-input" type="text" v-model="userEmail"

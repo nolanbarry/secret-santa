@@ -1,15 +1,31 @@
 <script setup lang="ts">
 import { getPlayers, getGame } from '@/services/Network';
 import { ref } from 'vue'
+import ErrorMessage from '../components/ErrorMessage.vue';
+import HamburgerPopout from '../components/HamburgerPopout.vue';
 
 let exchanges = ref();
 let loading = ref(true)
 
+let errorMessageSet = ref(false);
+let errorMessage = ref("");
+
 const getExchanges = async () => {
   let playersData = await getPlayers();
+  errorMessageSet.value = false;
+
+  if (playersData.success == false) {
+    errorMessageSet.value = true;
+    errorMessage.value = "There was an error loading your gift exchanges. Please refresh and try again."
+  }
+
   let data = []
   for (const i in playersData.players) {
     let gameData = await getGame(playersData.players[i].gameCode)
+    if (gameData.success == false) {
+      errorMessageSet.value = true;
+      errorMessage.value = "There was an error loading your gift exchanges. Please refresh and try again."
+    }
     let exchange = {
       playerId: playersData.players[i].id,
       gameCode: gameData.game?.code,
@@ -32,6 +48,7 @@ getExchanges();
   
 <template>
   <main>
+    <HamburgerPopout />
     <div class="title-wrapper">
       <header class="title">
         Choose Your Exchange
@@ -49,6 +66,11 @@ getExchanges();
         </div>
       </div>
     </div>
+    <ErrorMessage v-if="errorMessageSet">
+      <template #message>
+        {{ errorMessage }}
+      </template>
+    </ErrorMessage>
   </main>
 </template>
 
