@@ -6,7 +6,8 @@ import HamburgerPopout from '../components/HamburgerPopout.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 let exchanges = ref();
-let loading = ref(true)
+let loading = ref(true);
+let noExchanges = ref(false);
 
 let errorMessageSet = ref(false);
 let errorMessage = ref("");
@@ -18,6 +19,12 @@ const getExchanges = async () => {
   if (playersData.success == false) {
     errorMessageSet.value = true;
     errorMessage.value = "There was an error loading your gift exchanges. Please refresh and try again."
+  }
+
+  if (playersData.players.length <= 0) {
+    noExchanges.value = true;
+  } else {
+    noExchanges.value = false;
   }
 
   let data = []
@@ -78,7 +85,7 @@ const deleteExchange = async (exchangeCode: string) => {
           </div>
         </div>
       </div>
-      <h2 v-if="(exchanges.length == 0)">
+      <h2 v-if="(noExchanges && !loading)">
         Use the menu to add your first Gift Exchange!
       </h2>
     </div>
