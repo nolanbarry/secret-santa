@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { createAmplifyApp } from './amplify';
 import { createApiGateway } from './apiGateway';
 import { createLambdaRole, createLambdas } from './lambdas';
 import { createTables } from './tables';
@@ -18,5 +19,6 @@ export class SecretSantaStack extends cdk.Stack {
     const lambdas = createLambdas(this, lambdaRole)
 
     const apis = createApiGateway(this, lambdas)
+    const amplifyApp = createAmplifyApp(this)
   }
 }
