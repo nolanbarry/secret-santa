@@ -1,8 +1,28 @@
-let BASE_URL = "https://susf36ju4a.execute-api.us-west-2.amazonaws.com/prod";
+let BASE_URL = "https://susf36ju4a.execute-api.us-west-2.amazonaws.com/prod"; // Nolan's Link
+// let BASE_URL = "https://8ymlgc01j7.execute-api.us-west-2.amazonaws.com/prod" // Jared's Link
 
-export async function getUser(authToken: string) {
+function getAuthToken() {
+    return sessionStorage.getItem("authToken") ? sessionStorage.getItem("authToken") : "unauthorized"
+}
+
+export async function logout() {
+    sessionStorage.clear();
+}
+
+export async function checkAuth() {
     let body = {
-        "authToken": authToken
+        "authToken": getAuthToken()
+    }
+    let response = await postMethod("/user", body);
+    if (response.user) {
+        return true;
+    }
+    return false;
+}
+
+export async function getUser() {
+    let body = {
+        "authToken": getAuthToken()
     }
     let response = await postMethod("/user", body);
     return response;
@@ -22,49 +42,58 @@ export async function submitOtp(id: string, otp: string) {
         "otp": otp
     }
     let response = await postMethod("/user/submitotp", body);
+    sessionStorage.setItem("authToken", response.authToken)
     return response;
 }
 
-export async function getGame(authToken: string, gameCode: string) {
+export async function getGame(gameCode: string) {
     let body = {
-        "authToken": authToken,
+        "authToken": getAuthToken(),
         "gameCode": gameCode
     }
     let response = await postMethod("/game", body);
+    var utcSeconds = response.game.exchangeDate;
+    var d = new Date(utcSeconds);
+    response.game.exchangeDate = d.toLocaleDateString('en-us', {year: "numeric", month: "long", day: "numeric"});
     return response;
 }
 
-export async function joinGame() {
+export async function joinGame(gameCode: string, displayname: string) {
     let body = {
-        "authToken": "123",
-        "gameCode": "123",
-        "displayName": "abc"
+        "authToken": getAuthToken(),
+        "gameCode": gameCode,
+        "displayName": displayname
     }
     let response = await postMethod("/game/join", body);
     return response;
 }
 
-export async function createGame() {
+export async function createGame(gameName: string, hostDisplayName: string, exchangeDate: string) {
+    let date_seconds = Date.parse(exchangeDate);
+
     let body = {
-        "authToken": "123"
+        "authToken": getAuthToken(),
+        "gameName": gameName,
+        "hostDisplayName": hostDisplayName,
+        "exchangeDate": date_seconds
     }
     let response = await postMethod("/game/create", body);
     return response;
 }
 
-export async function startGame() {
+export async function startGame(gameCode: string) {
     let body = {
-        "authToken": "123",
-        "gameCode": "123"
+        "authToken": getAuthToken(),
+        "gameCode": gameCode
     }
     let response = await postMethod("/game/start", body);
     return response;
 }
 
-export async function endGame() {
+export async function endGame(gameCode: string) {
     let body = {
-        "authToken": "123",
-        "gameCode": "123"
+        "authToken": getAuthToken(),
+        "gameCode": gameCode
     }
     let response = await postMethod("/game/end", body);
     return response;
@@ -72,30 +101,43 @@ export async function endGame() {
 
 export async function getPlayers() {
     let body = {
-        "authToken": "123"
+        "authToken": getAuthToken()
     }
     let response = await postMethod("/user/players", body);
     return response;
 }
 
-export async function getPlayer() {
+export async function getPlayer(gameCode: string, displayName: string) {
     let body = {
-        "authToken": "123",
-        "gameCode": "123",
-        "displayName": "abc"
+        "authToken": getAuthToken(),
+        "gameCode": gameCode,
+        "displayName": displayName
     }
     let response = await postMethod("/user/player", body);
     return response;
 }
 
-async function postMethod(path: String, body: Object) {
+export async function getGamePlayers(gameCode: string) {
+    let body = {
+        "authToken": getAuthToken(),
+        "gameCode": gameCode
+    }
+    let response = await postMethod("/game/players", body);
+    return response;
+}
+
+async function postMethod(path: string, body: Object) {
     try {
         const response = await fetch(`${BASE_URL}${path}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         })
-        return await response.json();
+        if (response.ok) {
+            return await response.json();
+        } else {
+            console.log(await response.json());
+        }
     } catch (e) {
         console.log(e);
     }

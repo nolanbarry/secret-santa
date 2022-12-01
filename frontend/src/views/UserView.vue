@@ -1,93 +1,79 @@
 <script setup lang="ts">
 import HamburgerPopout from '@/components/HamburgerPopout.vue';
-import type { Game, Player } from '@/model/network-models';
-import { getGame, getPlayer, getGamePlayers } from '@/services/MockNetwork';
+import { getGame, getPlayer, getGamePlayers } from '@/services/Network';
 import { ref } from 'vue'
-
 import { useRoute } from 'vue-router'
 
 const route = useRoute();
 
 let exchange = ref();
 let hasAssignment = ref(false);
-let gameid = <String>route.params.gameid;
-let authToken = history.state.authToken
+let gameid = <string>route.params.gameid;
+let displayName = history.state.displayName;
 let exchangePlayers = ref();
 
 const getExchange = async () => {
-  // console.log(gameid);
-  let exchange_data = <Game>await getGame(authToken, gameid);
-  let player_data = <Player>await getPlayer(authToken, gameid);
+  let exchange_data = await getGame(gameid);
+  let player_data = await getPlayer(gameid, displayName);
   exchange.value = {
-    playerId: player_data.id,
-    gameCode: exchange_data.code,
-    displayName: player_data.displayName,
-    assignedTo: player_data.assignedTo,
-    exchangeName: exchange_data.displayName,
-    hostName: exchange_data.hostName,
-    started: exchange_data.started,
-    exchangeDate: exchange_data?.exchangeDate
+    playerId: player_data.player.id,
+    gameCode: exchange_data.game.code,
+    displayName: player_data.player.displayName,
+    assignedTo: player_data.player.assignedTo,
+    exchangeName: exchange_data.game.displayName,
+    hostName: exchange_data.game.hostName,
+    started: exchange_data.game.started,
+    exchangeDate: exchange_data.game?.exchangeDate
   }
-  if (player_data.assignedTo) {
+  if (player_data.player.assignedTo) {
     hasAssignment.value = true;
   }
 
-  exchangePlayers.value = <[Player]>await getGamePlayers(authToken, gameid);
+  let list_of_players = await getGamePlayers(gameid);
+  exchangePlayers.value = list_of_players.players;
 }
 
 getExchange();
 </script>
 
 <template>
-  <HamburgerPopout></HamburgerPopout>
-  <main class="content-wrapper">
-    <div class="title-wrapper">
-      <header class="exchange-title">
-        {{ exchange?.exchangeName }}
-      </header>
-    </div>
-    <div class="exchange-date-wrapper">
-      <h1 class="exchange-date">
-        {{ exchange?.exchangeDate }}
-      </h1>
-    </div>
-    <div class="assignment-div">
-      <p class="assignment-label">
-        {{ exchange?.displayName }}'s Assignment:
-      </p>
-      <p class="assignment">
-        <em v-if="hasAssignment">{{ exchange?.assignedTo }}</em>
-        <em v-else>Pending</em>
-      </p>
-    </div>
-    <div>
-      <h2>
-        Join Code: {{ exchange?.gameCode }}
-      </h2>
-    </div>
-    <div class="player-list-div">
-      <h2 class="player-list-label">
-        Player List:
-      </h2>
-    </div>
-    <!-- <div class="row"> -->
-    <!-- <div class="column">
-        <p>Player 1</p>
-        <p>Player 2</p>
-        <p>Player 3</p>
-        <p>Player 4</p>
-      </div> -->
-    <!-- <div class="column">
-        <p>Player 5</p>
-        <p>Player 6</p>
-        <p>Player 7</p>
-        <p>Player 8</p>
-      </div> -->
-    <!-- </div> -->
-    <div class="column" v-for="player in exchangePlayers">
-      <p>{{ player.displayName }}</p>
-    </div>
-  </main>
+  <div>
+    <HamburgerPopout></HamburgerPopout>
+    <main class="content-wrapper">
+      <div class="title-wrapper">
+        <header class="exchange-title">
+          {{ exchange?.exchangeName }}
+        </header>
+      </div>
+      <div class="exchange-date-wrapper">
+        <h1 class="exchange-date">
+          {{ exchange?.exchangeDate }}
+        </h1>
+      </div>
+      <div class="assignment-div">
+        <p class="assignment-label">
+          {{ exchange?.displayName }}'s Assignment:
+        </p>
+        <p class="assignment">
+          <em v-if="hasAssignment">{{ exchange?.assignedTo }}</em>
+          <em v-else>Pending</em>
+        </p>
+      </div>
+      <div>
+        <h2>
+          Join Code: {{ exchange?.gameCode }}
+        </h2>
+      </div>
+      <div class="player-list-div">
+        <h2 class="player-list-label">
+          Player List:
+        </h2>
+      </div>
+      <div class="column" v-for="player in exchangePlayers">
+        <p>{{ player.displayName }}</p>
+      </div>
+    </main>
+  </div>
 </template>
 
 <style lang="scss">

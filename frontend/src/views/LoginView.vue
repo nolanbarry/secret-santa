@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import router from '@/router';
 import TitleLogo from '../components/TitleLogo.vue';
-// import { login } from '@/services/Network';
-import { login } from '@/services/MockNetwork';
+import { login } from '@/services/Network';
 import { ref } from 'vue'
 
 let loading = ref(false)
@@ -22,8 +21,7 @@ const loginHandler = async () => {
     <main>
         <TitleLogo />
         <div class="text-input-div">
-            <input class="text-input" type="text" v-model="userEmail"
-                placeholder="Enter your Email" />
+            <input class="text-input" type="text" v-model="userEmail" placeholder="Enter your Email" />
         </div>
         <div class="button-div">
             <button @click="loginHandler" class="button">

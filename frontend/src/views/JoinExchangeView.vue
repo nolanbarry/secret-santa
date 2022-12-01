@@ -1,21 +1,20 @@
 <script setup lang="ts">
 import router from '@/router';
 import { ref } from 'vue'
-import { joinGame } from '@/services/MockNetwork';
+import { joinGame } from '@/services/Network';
 
 let loading = ref(false)
 let displayName = ref()
 let exchangeCode = ref()
 
-let authToken = history.state.authToken
-
 const joinExchangeHandler = async () => {
   loading.value = true;
 
-  let data = await joinGame(authToken, exchangeCode.value, displayName.value);
+  let data = await joinGame(exchangeCode.value, displayName.value);
 
   if (data.success == true) {
-    router.push({ name: "userView", params: { gameid: exchangeCode.value }, state: { authToken } })
+    router.push({ name: "userView", params: { gameid: exchangeCode.value }, state: { displayName: displayName.value } })
+
   } else {
     router.push('/');
   }

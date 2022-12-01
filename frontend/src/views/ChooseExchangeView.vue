@@ -1,25 +1,23 @@
 <script setup lang="ts">
-import { getPlayers, getGame } from '@/services/MockNetwork';
-import type { Player, Game } from "@/model/network-models";
+import { getPlayers, getGame } from '@/services/Network';
 import { ref } from 'vue'
 
 let exchanges = ref();
-let authToken = history.state.authToken
 
 const getExchanges = async () => {
-  let playersData = <[Player]>await getPlayers(authToken);
+  let playersData = await getPlayers();
   let data = []
-  for (const i in playersData) {
-    let gameData = <Game>await getGame(authToken, playersData[i].gameCode)
+  for (const i in playersData.players) {
+    let gameData = await getGame(playersData.players[i].gameCode)
     let exchange = {
-      playerId: playersData[i].id,
-      gameCode: gameData?.code,
-      displayName: playersData[i].displayName,
-      assignedTo: playersData[i].assignedTo,
-      exchangeName: gameData?.displayName,
-      hostName: gameData?.hostName,
-      started: gameData?.started,
-      exchangeDate: gameData?.exchangeDate
+      playerId: playersData.players[i].id,
+      gameCode: gameData.game?.code,
+      displayName: playersData.players[i].displayName,
+      assignedTo: playersData.players[i].assignedTo,
+      exchangeName: gameData.game?.displayName,
+      hostName: gameData.game?.hostName,
+      started: gameData.game?.started,
+      exchangeDate: gameData.game?.exchangeDate
     }
     data.push(exchange)
   }
@@ -40,7 +38,7 @@ getExchanges();
     <div class="choose-button-div">
       <div v-for="exchange in exchanges">
         <router-link
-          :to="{ name: 'userView', params: { gameid: exchange.gameCode }, state: { authToken: authToken } }"
+          :to="{ name: 'userView', params: { gameid: exchange.gameCode }, state: { displayName: exchange.displayName } }"
           class="choose-button">
           {{ exchange.exchangeName }}: {{ exchange.displayName }}
         </router-link>

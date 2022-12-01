@@ -9,12 +9,12 @@
       <div :class="['flyout-menu', { 'open': open }]" ref="flyout"
         :style="`transform: translateX(-${!open ? flyout?.clientWidth ?? 10000 : 0}px)`">
         <div class="menu-title">Menu</div>
-        <router-link :to="{ name: 'chooseExchange', state: { authToken } }">
+        <router-link :to="{ name: 'chooseExchange' }">
           View my Exchange List</router-link>
-        <router-link :to="{ name: 'joinExchange', state: { authToken } }">
+        <router-link :to="{ name: 'joinExchange' }">
           Join Exchange
         </router-link>
-        <router-link :to="{ name: 'createExchange', state: { authToken } }">
+        <router-link :to="{ name: 'createExchange' }">
           Create Exchange
         </router-link>
         <div @click="signOut">Sign Out</div>
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { logout } from '@/services/MockNetwork';
+import { logout } from '@/services/Network';
 import router from '@/router';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { onMounted, onUnmounted, ref } from 'vue'
@@ -34,8 +34,6 @@ const open = ref(false)
 /* https://vuejs.org/guide/typescript/composition-api.html#typing-template-refs */
 const hamburger = ref<HTMLInputElement | null>()
 const flyout = ref<HTMLInputElement | null>()
-
-let authToken = history.state.authToken;
 
 const clickListener = (event: MouseEvent) => {
   const clickTarget = event.target as HTMLInputElement

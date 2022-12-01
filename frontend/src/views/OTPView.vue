@@ -2,7 +2,7 @@
 import TitleLogo from '../components/TitleLogo.vue'
 import router from '@/router';
 import { ref } from 'vue'
-import { submitOtp } from '@/services/MockNetwork';
+import { submitOtp } from '@/services/Network';
 
 let loading = ref(false)
 let userid = history.state.userid
@@ -12,10 +12,7 @@ const submitOTPHandler = async () => {
   loading.value = true;
 
   let data = await submitOtp(userid, otp.value)
-  let authToken = data.authToken;
-
-  //Go to '/' if no redirectName value is set
-  router.push({name: sessionStorage.getItem('redirectName')?.toString(), state: {authToken}} || '/');
+  router.push({name: sessionStorage.getItem('redirectName')?.toString()} || '/');
 
   //Cleanup redirectPath
   sessionStorage.removeItem('redirectName');
