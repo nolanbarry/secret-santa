@@ -78,7 +78,7 @@ const deleteExchange = async (exchangeCode: string) => {
               :to="{ name: 'userView', params: { gameid: exchange.gameCode }, state: { displayName: exchange.displayName } }">
               {{ exchange.exchangeName }}: {{ exchange.displayName }}
             </router-link>
-            <button class="trash-can"
+            <button class="trash-can" v-if="(exchange.hostName == exchange.displayName)"
               @click="deleteExchange(exchange.gameCode)">
               <font-awesome-icon icon="fa-solid fa-trash-can" />
             </button>

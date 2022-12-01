@@ -199,8 +199,8 @@ const startExchange = async () => {
   border: none;
   background-color: #D9D9D9;
   // box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  // border-radius: 18px;
-  width: 25em;
+  border-radius: 18px;
+  width: 30em;
   // padding: 0.3em;
   padding: 1em;
 
