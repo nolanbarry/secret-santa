@@ -25,7 +25,7 @@ const createExchangeHandler = async () => {
     errorMessage.value = "Error creating your gift exchange. Verify the information you provided and try again."
     loading.value = false;
   } else {
-    router.push({ name: "userView", params: { gameid: data.gameCode } })
+    router.push({ name: "userView", params: { gameid: data.gameCode }, state: { displayName: hostDisplayName.value } })
   }
 }
 </script>

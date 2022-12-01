@@ -30,31 +30,32 @@ const getExchange = async () => {
   if (exchange_data.success == false || player_data.success == false) {
     errorMessageSet.value = true;
     errorMessage.value = "There was an error loading your gift exchange. Please refresh and try again."
-  }
+  } else {
 
-  exchange.value = {
-    playerId: player_data.player.id,
-    gameCode: exchange_data.game.code,
-    displayName: player_data.player.displayName,
-    exchangeName: exchange_data.game.displayName,
-    hostName: exchange_data.game.hostName,
-    started: exchange_data.game.started,
-    exchangeDate: exchange_data.game?.exchangeDate
-  }
-  assignedTo.value = player_data.player.assignedTo;
-  if (player_data.player.assignedTo) {
-    hasAssignment.value = true;
-  }
-  if (exchange.value.hostName === exchange.value.displayName) {
-    isHost.value = true;
-  }
+    exchange.value = {
+      playerId: player_data.player.id,
+      gameCode: exchange_data.game.code,
+      displayName: player_data.player.displayName,
+      exchangeName: exchange_data.game.displayName,
+      hostName: exchange_data.game.hostName,
+      started: exchange_data.game.started,
+      exchangeDate: exchange_data.game?.exchangeDate
+    }
+    assignedTo.value = player_data.player.assignedTo;
+    if (player_data.player.assignedTo) {
+      hasAssignment.value = true;
+    }
+    if (exchange.value.hostName === exchange.value.displayName) {
+      isHost.value = true;
+    }
 
-  let list_of_players = await getGamePlayers(gameid);
-  if (list_of_players.success == false) {
-    errorMessageSet.value = true;
-    errorMessage.value = "There was an error loading the players in your gift exchange. Please refresh and try again."
+    let list_of_players = await getGamePlayers(gameid);
+    if (list_of_players.success == false) {
+      errorMessageSet.value = true;
+      errorMessage.value = "There was an error loading the players in your gift exchange. Please refresh and try again."
+    }
+    exchangePlayers.value = list_of_players.players;
   }
-  exchangePlayers.value = list_of_players.players;
   loading.value = false;
 }
 
@@ -115,9 +116,11 @@ const startExchange = async () => {
               <em v-else>Pending</em>
             </p>
           </div>
-          <button @click="startExchange" class="assignment-button" v-if="isHost">
+          <button @click="startExchange" class="assignment-button"
+            v-if="isHost">
             <div v-if="!buttonLoading">Send out Assignments</div>
-            <div v-if="buttonLoading" class="button-loading-spinner" id="loading"></div>
+            <div v-if="buttonLoading" class="button-loading-spinner"
+              id="loading"></div>
           </button>
         </div>
         <div class="column-item-wrapper">
@@ -131,7 +134,9 @@ const startExchange = async () => {
           </h2>
         </div>
         <div class="column" v-for="player in exchangePlayers">
-          <p v-if="player.displayName === exchange.hostName">{{ player.displayName }} (Host)</p>
+          <p v-if="player.displayName === exchange.hostName">{{
+              player.displayName
+          }} (Host)</p>
           <p v-else>{{ player.displayName }}</p>
         </div>
       </div>
@@ -278,7 +283,7 @@ const startExchange = async () => {
   background-color: #A74141;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
   border-radius: 40px;
-  
+
   color: white;
   cursor: pointer;
 }
