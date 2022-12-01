@@ -2,16 +2,20 @@
 import TitleLogo from '../components/TitleLogo.vue'
 import router from '@/router';
 import { ref } from 'vue'
+import { submitOtp } from '@/services/Network';
 
 let loading = ref(false)
+let userid = history.state.userid
+let otp = ref()
 
 const submitOTPHandler = async () => {
   loading.value = true;
-  //Go to '/defaultpath' if no redirectPath value is set
-  router.push(sessionStorage.getItem('redirectPath') || '/');
+
+  let data = await submitOtp(userid, otp.value)
+  router.push({name: sessionStorage.getItem('redirectName')?.toString()} || '/');
 
   //Cleanup redirectPath
-  sessionStorage.removeItem('redirectPath');
+  sessionStorage.removeItem('redirectName');
 }
 </script>
 
@@ -20,7 +24,7 @@ const submitOTPHandler = async () => {
     <TitleLogo />
     <div class="text-input-div">
       <p class="input-label">Check your email for a one-time login code</p>
-      <input class="text-input" type="text" placeholder="Code from email" />
+      <input class="text-input" type="text" v-model="otp" placeholder="Code from email" />
     </div>
     <div class="button-div">
       <button @click="submitOTPHandler" class="button">

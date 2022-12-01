@@ -1,4 +1,24 @@
 <script setup lang="ts">
+import router from '@/router';
+import { ref } from 'vue'
+import { joinGame } from '@/services/Network';
+
+let loading = ref(false)
+let displayName = ref()
+let exchangeCode = ref()
+
+const joinExchangeHandler = async () => {
+  loading.value = true;
+
+  let data = await joinGame(exchangeCode.value, displayName.value);
+
+  if (data.success == true) {
+    router.push({ name: "userView", params: { gameid: exchangeCode.value }, state: { displayName: displayName.value } })
+
+  } else {
+    router.push('/');
+  }
+}
 </script>
   
 <template>
@@ -10,14 +30,17 @@
     </div>
     <div class="text-input-div">
       <p>Enter exchange code:</p>
-      <input type="text" class="text-input" placeholder="Exchange code" />
+      <input type="text" class="text-input" v-model="exchangeCode"
+        placeholder="Exchange code" />
       <p>Enter your name:</p>
-      <input type="text" class="text-input" placeholder="Your name" />
+      <input type="text" class="text-input" v-model="displayName"
+        placeholder="Your name" />
     </div>
     <div class="button-div">
-      <router-link to="/user-view" class="button">
-        Join Exchange
-      </router-link>
+      <button @click="joinExchangeHandler" class="button">
+        <div v-if="!loading">Join Exchange</div>
+        <div v-if="loading" class="button-loading-spinner" id="loading"></div>
+      </button>
     </div>
   </main>
 </template>

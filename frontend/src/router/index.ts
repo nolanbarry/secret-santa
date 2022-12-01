@@ -1,8 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 
-import '@/assets/scss/main.scss';
-import { getAuth } from '@/services/Network';
+import { checkAuth } from '@/services/Network';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,7 +22,8 @@ const router = createRouter({
     {
       path: '/otp',
       name: 'otp',
-      component: () => import('../views/OTPView.vue')
+      component: () => import('../views/OTPView.vue'),
+      props: { default: true }
     },
     {
       path: '/join-exchange',
@@ -47,26 +47,29 @@ const router = createRouter({
       meta: {
         requiresAuth: true
       },
-      component: () => import('../views/ChooseExchangeView.vue')
+      component: () => import('../views/ChooseExchangeView.vue'),
+      props: {default: true }
     },
     {
-      path: '/user-view',
+      path: '/user-view/:gameid',
       name: 'userView',
       meta: {
         requiresAuth: true
       },
-      component: () => import('../views/UserView.vue')
+      component: () => import('../views/UserView.vue'),
+      props: { default: true }
     }
   ]
 })
+
 
 router.beforeEach(async (to, from, next) => {
 
   if (to.matched.some(record => record.meta.requiresAuth)) {
     // this route requires auth, check if logged in
     // if not, redirect to login page.
-    if (!(await getAuth())) {
-      sessionStorage.setItem('redirectPath', to.path);
+    if (!(await checkAuth())) {
+      sessionStorage.setItem('redirectName', to.name ? to.name.toString() : '/');
       next({ name: 'login' })
     } else {
       next() // go to wherever I'm going

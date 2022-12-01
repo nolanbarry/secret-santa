@@ -1,5 +1,21 @@
 <script setup lang="ts">
-  import ChooseDate from '../components/ChooseDate.vue'
+import ChooseDate from '../components/ChooseDate.vue'
+import router from '@/router';
+import { ref } from 'vue'
+import { createGame } from '@/services/Network';
+
+let loading = ref(false)
+let exchangeName = ref()
+let hostDisplayName = ref()
+let exchangeDate = ref()
+
+const createExchangeHandler = async () => {
+  loading.value = true;
+
+  let data = await createGame(exchangeName.value, hostDisplayName.value, exchangeDate.value);
+
+  router.push({ name: "userView", params: { gameid: data.gameCode } })
+}
 </script>
 
 <template>
@@ -11,18 +27,21 @@
     </div>
     <div class="text-input-div">
       <p>Enter a name for your new exchange:</p>
-      <input class="text-input" type="text" placeholder="Exchange name" />
+      <input class="text-input" type="text" v-model="exchangeName"
+        placeholder="Exchange name" />
       <p>Enter your name:</p>
-      <input class="text-input" type="text" placeholder="Your name" />
+      <input class="text-input" type="text" v-model="hostDisplayName"
+        placeholder="Your name" />
     </div>
     <div class="date-picker-div">
       <p>Choose a date for your exchange:</p>
-      <ChooseDate/>
+      <ChooseDate @chosen-date="(chosenDate) => exchangeDate = chosenDate" />
     </div>
     <div class="button-div">
-      <router-link to="/user-view" class="button">
-        Create Exchange
-      </router-link>
+      <button @click="createExchangeHandler" class="button">
+        <div v-if="!loading">Create Exchange</div>
+        <div v-if="loading" class="button-loading-spinner" id="loading"></div>
+      </button>
     </div>
   </main>
 </template>

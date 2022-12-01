@@ -1,4 +1,31 @@
 <script setup lang="ts">
+import { getPlayers, getGame } from '@/services/Network';
+import { ref } from 'vue'
+
+let exchanges = ref();
+
+const getExchanges = async () => {
+  let playersData = await getPlayers();
+  let data = []
+  for (const i in playersData.players) {
+    let gameData = await getGame(playersData.players[i].gameCode)
+    let exchange = {
+      playerId: playersData.players[i].id,
+      gameCode: gameData.game?.code,
+      displayName: playersData.players[i].displayName,
+      assignedTo: playersData.players[i].assignedTo,
+      exchangeName: gameData.game?.displayName,
+      hostName: gameData.game?.hostName,
+      started: gameData.game?.started,
+      exchangeDate: gameData.game?.exchangeDate
+    }
+    data.push(exchange)
+  }
+  exchanges.value = data
+}
+
+getExchanges();
+
 </script>
   
 <template>
@@ -9,17 +36,13 @@
       </header>
     </div>
     <div class="choose-button-div">
-      <router-link to="/user-view" class="choose-button">
-        Smith Family Gift Exchange: Johnny
-      </router-link>
-
-      <router-link to="/user-view" class="choose-button">
-        Work Secret Santa: John Smith
-      </router-link>
-
-      <router-link to="/user-view" class="choose-button">
-        Group Project Gift Exchange: John
-      </router-link>
+      <div v-for="exchange in exchanges">
+        <router-link
+          :to="{ name: 'userView', params: { gameid: exchange.gameCode }, state: { displayName: exchange.displayName } }"
+          class="choose-button">
+          {{ exchange.exchangeName }}: {{ exchange.displayName }}
+        </router-link>
+      </div>
     </div>
   </main>
 </template>
