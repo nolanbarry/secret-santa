@@ -46,15 +46,25 @@ export async function submitOtp(id: string, otp: string) {
     return response;
 }
 
+export async function validateAuth() {
+    const body = { authToken: getAuthToken() }
+    try {
+        const response = await postMethod(`${BASE_URL}/user/validateauth`, body)
+        return response
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 export async function getGame(gameCode: string) {
-    let body = {
+    const body = {
         "authToken": getAuthToken(),
         "gameCode": gameCode
     }
-    let response = await postMethod("/game", body);
-    var utcSeconds = response.game.exchangeDate;
-    var d = new Date(utcSeconds);
-    response.game.exchangeDate = d.toLocaleDateString('en-us', {year: "numeric", month: "long", day: "numeric"});
+    const response = await postMethod("/game", body);
+    const utcSeconds = response.game.exchangeDate;
+    const d = new Date(utcSeconds);
+    response.game.exchangeDate = d.toLocaleDateString('en-us', { year: "numeric", month: "long", day: "numeric" });
     return response;
 }
 

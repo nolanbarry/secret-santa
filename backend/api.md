@@ -190,3 +190,19 @@ Located in `submit-otp.ts`
   authToken: string
 }
 ```
+
+# `/validate-auth`
+Located in `validate-auth.ts`
+### Request Body
+```json
+{
+  auth: string
+}
+```
+### Response Body
+```json
+{
+  success: true,
+  authToken: string
+}
+```

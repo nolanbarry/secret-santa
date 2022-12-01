@@ -3,7 +3,7 @@ import { use, expect } from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import sinon from 'sinon'
 import { AwsStub, mockClient } from 'aws-sdk-client-mock'
-import { DeleteItemCommand, DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, ServiceInputTypes, ServiceOutputTypes, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
+import { DeleteItemCommand, DynamoDBClient, GetItemCommand, PutItemCommand, QueryCommand, ScanCommand, ServiceInputTypes, ServiceOutputTypes, UpdateItemCommand } from '@aws-sdk/client-dynamodb'
 import { marshall } from '@aws-sdk/util-dynamodb';
 import { authenticate, displayNameTaken, getPlayersForUser, getUserIdByContactString, login, verifyOtp, createGame, getPlayersInGame, startGame, endGame } from '../../src/services/dynamodb'
 import * as modeOfContact from '../../src/model/mode-of-contact'
@@ -151,26 +151,34 @@ describe("dynamodb:", () => {
           id: "<USER ID>"
         }
       ]
+      dynamodbMock.on(ScanCommand).resolves({
+        Items: samplePlayers.map(p => marshall(p))
+      })
       dynamodbMock.on(QueryCommand).resolves({
         Items: samplePlayers.map(p => marshall(p))
       })
 
       await expect(getPlayersForUser("<USER ID>")).to.eventually.deep.equal(samplePlayers.map(p => entryToModel(p)))
       await expect(getPlayersInGame("<USER ID>")).to.eventually.deep.equal(samplePlayers.map(p => entryToModel(p)))
-      expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(2)
+      expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(1)
+      expect(dynamodbMock.commandCalls(ScanCommand).length).to.equal(1)
     })
 
     it("Returns no players", async () => {
       dynamodbMock.on(QueryCommand).resolves({})
+      dynamodbMock.on(ScanCommand).resolves({})
       await expect(getPlayersForUser("<USER ID>")).to.eventually.deep.equal([])
       await expect(getPlayersInGame("<USER ID>")).to.eventually.deep.equal([])
-      expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(2)
+      expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(1)
+      expect(dynamodbMock.commandCalls(ScanCommand).length).to.equal(1)
       dynamodbMock.reset()
 
       dynamodbMock.on(QueryCommand).resolves({ Items: [] })
+      dynamodbMock.on(ScanCommand).resolves({ Items: [] })
       await expect(getPlayersForUser("<USER ID>")).to.eventually.deep.equal([])
       await expect(getPlayersInGame("<USER ID>")).to.eventually.deep.equal([])
-      expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(2)
+      expect(dynamodbMock.commandCalls(QueryCommand).length).to.equal(1)
+      expect(dynamodbMock.commandCalls(ScanCommand).length).to.equal(1)
     })
   })
 

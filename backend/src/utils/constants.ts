@@ -83,6 +83,7 @@ const strings = {
   gameDne: (gameCode: string) => `Game ${gameCode} does not exist`,
   playerDne: (gameCode: string, displayName: string) => `Player ${displayName} in does not exist in ${gameCode}`,
   authorizedUserDne: 'Authorized user does not exist',
+  unauthorized: 'Auth token invalid',
   userIsNotHost: 'Insufficient permissions to perform action',
   sesSource: "secretsantaexchange428@gmail.com",
   emailCharset: "UTF-8"

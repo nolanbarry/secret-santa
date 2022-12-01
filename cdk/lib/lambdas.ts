@@ -18,6 +18,7 @@ import { tableConfigurations, Tables } from "./tables"
 export type Lambdas = {
   submitOtp: Function
   login: Function,
+  validateAuth: Function,
   getUser: Function,
   createGame: Function,
   joinGame: Function,
@@ -61,6 +62,10 @@ const configurationProps: { [Property in LambdaReference]: LambdaConfigurationPr
   login: {
     name: 'login',
     apiRoute: '/user/login'
+  },
+  validateAuth: {
+    name: 'validate-auth',
+    apiRoute: '/user/validateauth'
   },
   getUser: {
     name: 'get-user',
