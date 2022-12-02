@@ -64,7 +64,9 @@ const createExchangeHandler = async () => {
   </main>
 </template>
 
-<style>
+<style lang="scss">
+$mobile-threshold: 800px;
+
 .title {
   font-family: 'Coiny';
   font-style: normal;
@@ -73,6 +75,11 @@ const createExchangeHandler = async () => {
   color: #FFFFFF;
   -webkit-text-stroke: 0.27rem #A74141;
   flex-wrap: wrap;
+
+  @media screen and (max-width: $mobile-threshold) {
+    font-size: 3rem;
+    -webkit-text-stroke: 0.2rem #A74141;
+  }
 }
 
 .title-wrapper {
