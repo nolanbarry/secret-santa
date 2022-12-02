@@ -10,7 +10,7 @@ const route = useRoute();
 let exchange = ref();
 let assignedTo = ref();
 let hasAssignment = ref(false);
-let gameid = <string>route.params.gameid;
+let gameid = route.params.gameid as string;
 let displayName = history.state.displayName;
 let exchangePlayers = ref();
 
