@@ -78,7 +78,8 @@ const deleteExchange = async (exchangeCode: string) => {
               :to="{ name: 'userView', params: { gameid: exchange.gameCode }, state: { displayName: exchange.displayName } }">
               {{ exchange.exchangeName }}: {{ exchange.displayName }}
             </router-link>
-            <button class="trash-can" v-if="(exchange.hostName == exchange.displayName)"
+            <button class="trash-can"
+              v-if="(exchange.hostName == exchange.displayName)"
               @click="deleteExchange(exchange.gameCode)">
               <font-awesome-icon icon="fa-solid fa-trash-can" />
             </button>
@@ -98,7 +99,9 @@ const deleteExchange = async (exchangeCode: string) => {
   </main>
 </template>
 
-<style>
+<style lang="scss">
+$mobile-threshold: 800px;
+
 .title {
   font-family: 'Coiny';
   font-style: normal;
@@ -107,6 +110,11 @@ const deleteExchange = async (exchangeCode: string) => {
   color: #FFFFFF;
   -webkit-text-stroke: 0.27rem #A74141;
   flex-wrap: wrap;
+
+  @media screen and (max-width: $mobile-threshold) {
+    font-size: 3rem;
+    -webkit-text-stroke: 0.2rem #A74141;
+  }
 }
 
 .title-wrapper {
@@ -161,5 +169,7 @@ const deleteExchange = async (exchangeCode: string) => {
   border: none;
 
   cursor: pointer;
+
+  color: black;
 }
 </style>

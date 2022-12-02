@@ -38,7 +38,7 @@ const submitOTPHandler = async () => {
     <HamburgerPopout :isAuthPage="true" />
     <TitleLogo />
     <div class="text-input-div">
-      <p class="input-label">Check your email for a one-time login code</p>
+      <p class="input-label">Check your email for a one-time login code. It may take up to 2 minutes to arrive.</p>
       <input class="text-input" type="text" v-model="otp"
         placeholder="Code from email" />
     </div>
@@ -67,5 +67,6 @@ const submitOTPHandler = async () => {
 
 .input-label {
   margin-bottom: 20px;
+  text-align: center;
 }
 </style>
