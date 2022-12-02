@@ -147,6 +147,7 @@ async function postMethod(path: string, body: Object) {
             return await response.json();
         } else {
             console.log(await response.json());
+            return { success: false }
         }
     } catch (e) {
         console.log(e);

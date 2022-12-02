@@ -3,23 +3,36 @@ import ChooseDate from '../components/ChooseDate.vue'
 import router from '@/router';
 import { ref } from 'vue'
 import { createGame } from '@/services/Network';
+import HamburgerPopout from '@/components/HamburgerPopout.vue';
+import ErrorMessage from '@/components/ErrorMessage.vue';
 
 let loading = ref(false)
 let exchangeName = ref()
 let hostDisplayName = ref()
 let exchangeDate = ref()
 
+let errorMessageSet = ref(false)
+let errorMessage = ref("")
+
 const createExchangeHandler = async () => {
   loading.value = true;
+  errorMessageSet.value = false;
 
   let data = await createGame(exchangeName.value, hostDisplayName.value, exchangeDate.value);
 
-  router.push({ name: "userView", params: { gameid: data.gameCode } })
+  if (data.success == false) {
+    errorMessageSet.value = true;
+    errorMessage.value = "Error creating your gift exchange. Verify the information you provided and try again."
+    loading.value = false;
+  } else {
+    router.push({ name: "userView", params: { gameid: data.gameCode }, state: { displayName: hostDisplayName.value } })
+  }
 }
 </script>
 
 <template>
   <main>
+    <HamburgerPopout />
     <div class="title-wrapper">
       <header class="title">
         Create Exchange
@@ -43,6 +56,11 @@ const createExchangeHandler = async () => {
         <div v-if="loading" class="button-loading-spinner" id="loading"></div>
       </button>
     </div>
+    <ErrorMessage v-if="errorMessageSet">
+      <template #message>
+        {{ errorMessage }}
+      </template>
+    </ErrorMessage>
   </main>
 </template>
 

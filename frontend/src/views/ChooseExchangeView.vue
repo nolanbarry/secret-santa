@@ -1,14 +1,39 @@
 <script setup lang="ts">
-import { getPlayers, getGame } from '@/services/Network';
+import { getPlayers, getGame, endGame } from '@/services/Network';
 import { ref } from 'vue'
+import ErrorMessage from '../components/ErrorMessage.vue';
+import HamburgerPopout from '../components/HamburgerPopout.vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 let exchanges = ref();
+let loading = ref(true);
+let noExchanges = ref(false);
+
+let errorMessageSet = ref(false);
+let errorMessage = ref("");
 
 const getExchanges = async () => {
   let playersData = await getPlayers();
+  errorMessageSet.value = false;
+
+  if (playersData.success == false) {
+    errorMessageSet.value = true;
+    errorMessage.value = "There was an error loading your gift exchanges. Please refresh and try again."
+  }
+
+  if (playersData.players.length <= 0) {
+    noExchanges.value = true;
+  } else {
+    noExchanges.value = false;
+  }
+
   let data = []
   for (const i in playersData.players) {
     let gameData = await getGame(playersData.players[i].gameCode)
+    if (gameData.success == false) {
+      errorMessageSet.value = true;
+      errorMessage.value = "There was an error loading your gift exchanges. Please refresh and try again."
+    }
     let exchange = {
       playerId: playersData.players[i].id,
       gameCode: gameData.game?.code,
@@ -22,28 +47,54 @@ const getExchanges = async () => {
     data.push(exchange)
   }
   exchanges.value = data
+  loading.value = false;
 }
 
 getExchanges();
+
+const deleteExchange = async (exchangeCode: string) => {
+  loading.value = true;
+  let data = await endGame(exchangeCode);
+  await getExchanges();
+  loading.value = false;
+}
 
 </script>
   
 <template>
   <main>
+    <HamburgerPopout />
     <div class="title-wrapper">
       <header class="title">
         Choose Your Exchange
       </header>
     </div>
     <div class="choose-button-div">
-      <div v-for="exchange in exchanges">
-        <router-link
-          :to="{ name: 'userView', params: { gameid: exchange.gameCode }, state: { displayName: exchange.displayName } }"
-          class="choose-button">
-          {{ exchange.exchangeName }}: {{ exchange.displayName }}
-        </router-link>
+      <div v-if="loading" class="loading-spinner" id="loading"></div>
+      <div v-else>
+        <div v-for="exchange in exchanges">
+          <div class="choose-button-container">
+            <router-link class="choose-button"
+              :to="{ name: 'userView', params: { gameid: exchange.gameCode }, state: { displayName: exchange.displayName } }">
+              {{ exchange.exchangeName }}: {{ exchange.displayName }}
+            </router-link>
+            <button class="trash-can" v-if="(exchange.hostName == exchange.displayName)"
+              @click="deleteExchange(exchange.gameCode)">
+              <font-awesome-icon icon="fa-solid fa-trash-can" />
+            </button>
+          </div>
+        </div>
       </div>
+      <h2 v-if="(noExchanges && !loading)">
+        Use the menu to add your first Gift Exchange!
+      </h2>
     </div>
+
+    <ErrorMessage v-if="errorMessageSet">
+      <template #message>
+        {{ errorMessage }}
+      </template>
+    </ErrorMessage>
   </main>
 </template>
 
@@ -72,21 +123,42 @@ getExchanges();
 }
 
 .choose-button {
+  text-decoration: none;
+  color: black;
+
+  font-family: 'Inter' sans-serif;
+  font-size: 1rem;
+  text-align: center;
+  flex-grow: 1;
+  padding: 1rem;
+}
+
+.choose-button-container {
   margin-top: 2rem;
-  display: flex;
+
+  width: 25em;
+
 
   border: none;
   background-color: #D9D9D9;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  /* border-radius: 40px; */
-  width: 20em;
-  padding: 1em;
 
-  text-decoration: none;
-  color: black;
-  font-family: 'Inter' sans-serif;
-  font-size: 1rem;
-  justify-content: center;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  cursor: pointer;
+
+}
+
+.trash-can {
+  flex-grow: 0;
+  padding: 1rem;
+
+  font-size: 1.25rem;
+
+  background-color: #D9D9D9;
+  border: none;
 
   cursor: pointer;
 }
